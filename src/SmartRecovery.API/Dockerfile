@@ -13,7 +13,7 @@ COPY src/SmartRecovery.Application/SmartRecovery.Application.csproj       src/Sm
 COPY src/SmartRecovery.Domain/SmartRecovery.Domain.csproj                 src/SmartRecovery.Domain/
 COPY src/SmartRecovery.Infrastructure/SmartRecovery.Infrastructure.csproj src/SmartRecovery.Infrastructure/
 
-RUN dotnet restore
+RUN dotnet restore src/SmartRecovery.API/SmartRecovery.API.csproj
 
 # Copia o restante do código-fonte e publica o projeto da API
 COPY . .
