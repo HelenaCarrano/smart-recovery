@@ -62,18 +62,53 @@ public class RecoveryServiceTests
             .Setup(r => r.GetWithDetailsAsync(payment.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payment);
 
-        // Histórico vazio (cliente novo): a análise não deve ser penalizada, mantendo o score base do motivo.
+        // O repositório retorna o próprio pagamento recém-recusado dentro do histórico (é assim que
+        // acontece em produção: o Payment já foi salvo antes da análise rodar). Isso não deve ser
+        // contado como histórico "anterior" e não deve penalizar o score.
         _paymentRepository
             .Setup(r => r.GetHistoryByCustomerAsync(customerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .ReturnsAsync([payment]);
 
         var result = await _sut.AnalyzeAsync(payment.Id);
 
         Assert.Equal(RecoveryAction.RetryIn2Hours, result.RecommendedAction);
+        Assert.Equal(0, result.TotalPayments);
         Assert.NotNull(payment.ScheduledRetryAt);
         Assert.NotNull(result.ExecutedAt);
         _recoveryAnalysisRepository.Verify(r => r.AddAsync(It.IsAny<RecoveryAnalysis>(), It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_CustomerWithNoPriorPayments_DoesNotApplyHistoryPenalty()
+    {
+        var customerId = Guid.NewGuid();
+        var payment = new Payment
+        {
+            CustomerId = customerId,
+            SubscriptionId = Guid.NewGuid(),
+            Status = PaymentStatus.Declined,
+            DeclineReason = DeclineReason.ExpiredCard,
+            AttemptCount = 1
+        };
+
+        // O único registro no histórico é o próprio pagamento sendo analisado: para fins de taxa
+        // histórica de sucesso, este cliente não tem NENHUM pagamento anterior.
+        _paymentRepository
+            .Setup(r => r.GetWithDetailsAsync(payment.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payment);
+        _paymentRepository
+            .Setup(r => r.GetHistoryByCustomerAsync(customerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([payment]);
+
+        var result = await _sut.AnalyzeAsync(payment.Id);
+
+        // ExpiredCard tem score base 40 (bucket 30-49 → RequestPaymentMethodUpdate). Sem a correção,
+        // o pagamento atual seria contado como uma cobrança anterior malsucedida (taxa de sucesso 0%),
+        // aplicando -20 e derrubando o score para 20 (bucket < 30 → CancelSubscription indevidamente).
+        Assert.Equal(0, result.TotalPayments);
+        Assert.Equal(0, result.SuccessfulPayments);
+        Assert.Equal(RecoveryAction.RequestPaymentMethodUpdate, result.RecommendedAction);
     }
 
     [Fact]

@@ -68,23 +68,34 @@ public class PaymentRetryWorker(
         if (dueSubscriptions.Count == 0)
             return;
 
-        // Avança a data de cobrança antes de criar o Payment para não faturar a mesma assinatura duas vezes
-        // caso o processamento do pagamento demore mais que o intervalo do worker.
-        foreach (var subscription in dueSubscriptions)
-        {
-            subscription.NextBillingDate = BillingCycleCalculator.NextBillingDate(subscription.NextBillingDate, subscription.Plan.Periodicity);
-            subscriptionRepository.Update(subscription);
-        }
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var billedCount = 0;
 
         foreach (var subscription in dueSubscriptions)
         {
-            var payment = await paymentService.CreatePendingForSubscriptionAsync(subscription.Id, cancellationToken);
-            await paymentService.ProcessAsync(payment.Id, cancellationToken);
+            try
+            {
+                var payment = await paymentService.CreatePendingForSubscriptionAsync(subscription.Id, cancellationToken);
+                await paymentService.ProcessAsync(payment.Id, cancellationToken);
+
+                // Só avança a data de cobrança depois que o Payment do ciclo foi criado e processado com
+                // sucesso: se avançássemos antes e algo falhasse no meio do caminho, a assinatura perderia
+                // o ciclo inteiro (nenhum Payment gerado, e a próxima verificação já esperaria a data seguinte).
+                subscription.NextBillingDate = BillingCycleCalculator.NextBillingDate(subscription.NextBillingDate, subscription.Plan.Periodicity);
+                subscriptionRepository.Update(subscription);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                billedCount++;
+            }
+            catch (Exception ex)
+            {
+                // Uma falha nesta assinatura não avança sua NextBillingDate, então ela continua "devida"
+                // e será tentada novamente no próximo ciclo do worker — e não deve impedir as demais.
+                logger.LogError(ex, "Failed to bill subscription {SubscriptionId}; it remains due and will be retried next cycle.", subscription.Id);
+            }
         }
 
-        logger.LogInformation("Billed {Count} subscription(s) due for charge.", dueSubscriptions.Count);
+        if (billedCount > 0)
+            logger.LogInformation("Billed {Count} subscription(s) due for charge.", billedCount);
     }
 
     private async Task RetryDuePaymentsAsync(

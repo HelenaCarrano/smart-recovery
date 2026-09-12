@@ -65,10 +65,14 @@ public class RecoveryService(
         var history = await paymentRepository.GetHistoryByCustomerAsync(payment.CustomerId, cancellationToken);
         var cutoff = DateTime.UtcNow - RecentWindow;
 
-        var totalPayments = history.Count;
-        var successfulPayments = history.Count(p => p.Status == PaymentStatus.Approved);
+        // A taxa histórica de sucesso deve refletir apenas cobranças anteriores a esta. Incluir o próprio
+        // pagamento recém-recusado sempre zeraria a taxa de um cliente novo, penalizando-o sem necessidade.
+        var priorPayments = history.Where(p => p.Id != payment.Id).ToList();
+
+        var totalPayments = priorPayments.Count;
+        var successfulPayments = priorPayments.Count(p => p.Status == PaymentStatus.Approved);
         // Um pagamento aprovado que precisou de mais de uma tentativa foi, por definição, recuperado.
-        var previouslyRecovered = history.Count(p => p.Id != payment.Id && p.Status == PaymentStatus.Approved && p.AttemptCount > 1);
+        var previouslyRecovered = priorPayments.Count(p => p.Status == PaymentStatus.Approved && p.AttemptCount > 1);
         var recentDeclines = history.Count(p => p.Status == PaymentStatus.Declined && p.CreatedAt >= cutoff);
         var recentAttempts = history.Where(p => p.CreatedAt >= cutoff).Sum(p => p.AttemptCount);
 

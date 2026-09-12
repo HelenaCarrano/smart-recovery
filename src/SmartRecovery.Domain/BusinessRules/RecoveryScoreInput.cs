@@ -7,8 +7,8 @@ namespace SmartRecovery.Domain.BusinessRules;
 /// Espelha os campos de auditoria armazenados em <see cref="Entities.RecoveryAnalysis"/>.
 /// </summary>
 /// <param name="DeclineReason">Motivo da recusa que originou a análise.</param>
-/// <param name="TotalPayments">Total histórico de cobranças do cliente (incluindo esta).</param>
-/// <param name="SuccessfulPayments">Quantas dessas cobranças foram aprovadas (em qualquer tentativa).</param>
+/// <param name="TotalPayments">Total de cobranças anteriores do cliente, sem contar a que está sendo analisada agora.</param>
+/// <param name="SuccessfulPayments">Quantas dessas cobranças anteriores foram aprovadas (em qualquer tentativa).</param>
 /// <param name="PreviouslyRecoveredPayments">Quantas cobranças recusadas anteriormente foram recuperadas com sucesso via retry.</param>
 /// <param name="RecentDeclines">Recusas nos últimos 30 dias, incluindo a atual.</param>
 /// <param name="RecentAttempts">Tentativas (de qualquer resultado) nos últimos 30 dias.</param>
