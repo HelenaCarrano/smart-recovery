@@ -20,7 +20,7 @@ public class SubscriptionRepository(SmartRecoveryDbContext context)
         await DbSet.Include(s => s.Plan).Where(s => s.CustomerId == customerId).ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Subscription>> GetByStatusAsync(SubscriptionStatus status, CancellationToken cancellationToken = default) =>
-        await DbSet.Where(s => s.Status == status).ToListAsync(cancellationToken);
+        await DbSet.Include(s => s.Plan).Where(s => s.Status == status).ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Subscription>> GetDueForBillingAsync(DateTime asOf, CancellationToken cancellationToken = default) =>
         await DbSet

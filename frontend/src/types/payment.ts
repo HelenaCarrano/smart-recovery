@@ -6,6 +6,10 @@ export type DeclineReason =
   | 'InvalidCard'
   | 'TemporaryError'
   | 'BlockedCard'
+  | 'SuspectedFraud'
+  | 'CardLimitExceeded'
+  | 'SecurityCodeInvalid'
+  | 'IssuerUnavailable'
   | 'Unknown'
 
 /** Espelha o JSON retornado por GET /api/payments/{id} e GET /api/payments/by-customer/{id}. */

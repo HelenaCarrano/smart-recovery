@@ -16,4 +16,13 @@ public static class BillingCycleCalculator
         PlanPeriodicity.Annual => from.AddDays(365),
         _ => throw new ArgumentOutOfRangeException(nameof(periodicity), periodicity, "Unknown periodicity.")
     };
+
+    /// <summary>Normaliza o preço de um plano para uma equivalência mensal — usado no cálculo de MRR.</summary>
+    public static decimal MonthlyEquivalent(decimal price, PlanPeriodicity periodicity) => periodicity switch
+    {
+        PlanPeriodicity.Monthly => price,
+        PlanPeriodicity.Quarterly => price / 3m,
+        PlanPeriodicity.Annual => price / 12m,
+        _ => throw new ArgumentOutOfRangeException(nameof(periodicity), periodicity, "Unknown periodicity.")
+    };
 }

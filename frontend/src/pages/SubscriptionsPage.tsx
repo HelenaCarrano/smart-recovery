@@ -1,3 +1,4 @@
+import { SubscriptionMetricsSection } from '@/components/SubscriptionMetricsSection'
 import { SubscriptionStatusBadge } from '@/components/SubscriptionStatusBadge'
 import { Card } from '@/components/ui/Card'
 import { type DataTableColumn, DataTable } from '@/components/ui/DataTable'
@@ -6,6 +7,7 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { Pagination } from '@/components/ui/Pagination'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
+import { useSubscriptionsSummary } from '@/hooks/useSubscriptionsSummary'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import { periodicityLabel } from '@/lib/labels'
 import type { SubscriptionListItem } from '@/types/subscriptionListItem'
@@ -47,6 +49,7 @@ export function SubscriptionsPage() {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<SubscriptionStatus | 'All'>('All')
   const state = useSubscriptions(page, PAGE_SIZE, status === 'All' ? undefined : status)
+  const summaryState = useSubscriptionsSummary()
 
   function handleStatusChange(next: SubscriptionStatus | 'All') {
     setStatus(next)
@@ -55,6 +58,8 @@ export function SubscriptionsPage() {
 
   return (
     <div className="space-y-6">
+      <SubscriptionMetricsSection state={summaryState} />
+
       <Card className="flex items-center gap-3">
         <label className="text-xs font-medium text-slate-500" htmlFor="subscription-status">
           Status

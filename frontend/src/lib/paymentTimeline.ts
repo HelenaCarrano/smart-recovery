@@ -32,7 +32,8 @@ export function buildPaymentTimeline(
     })
 
     if (attempt.resultStatus === 'Approved') {
-      steps.push({ id: `result-${attempt.id}`, label: 'Aprovado', timestamp: attempt.attemptedAt, tone: 'approved' })
+      const label = index > 0 ? 'Recuperado com sucesso ✓' : 'Aprovado'
+      steps.push({ id: `result-${attempt.id}`, label, timestamp: attempt.attemptedAt, tone: 'approved' })
     } else if (attempt.resultStatus === 'Declined') {
       steps.push({
         id: `result-${attempt.id}`,

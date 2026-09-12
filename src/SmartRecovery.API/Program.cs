@@ -51,14 +51,33 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath);
+
+    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Name = "X-Api-Key",
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Description = "Chave de API exigida em todas as rotas (exceto Swagger e /api/health). Configurada em Security:ApiKey."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKey" } },
+            []
+        }
+    });
 });
+
+// Origens vêm de config (Cors:AllowedOrigins) — localhost:5173 em dev, os domínios do Firebase Hosting
+// em produção — em vez de AllowAnyOrigin, que não distingue o frontend de qualquer outro site.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -81,6 +100,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors("AllowFrontend");
+
+app.UseMiddleware<ApiKeyMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

@@ -21,7 +21,7 @@ const PAGE_SIZE = 20
 const columns: DataTableColumn<PaymentListItem>[] = [
   { key: 'customer', header: 'Cliente', render: (row) => <span className="font-medium text-slate-900">{row.customerName}</span> },
   { key: 'amount', header: 'Valor', render: (row) => formatCurrency(row.amount) },
-  { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+  { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} attemptCount={row.attemptCount} /> },
   { key: 'declineReason', header: 'Motivo da recusa', render: (row) => declineReasonLabel(row.declineReason) },
   { key: 'date', header: 'Data', render: (row) => formatDateTime(row.createdAt) },
   {

@@ -20,7 +20,6 @@ public static class SmartRecoveryDataSeeder
     private const int MaxAttemptsPerCycle = 6;
 
     private static readonly TimeSpan RecentWindow = TimeSpan.FromDays(30);
-    private static readonly DeclineReason[] DeclineReasons = Enum.GetValues<DeclineReason>();
 
     private static readonly string[] FirstNames =
         ["Ana", "Bruno", "Carla", "Diego", "Elisa", "Fábio", "Gabriela", "Hugo", "Isabela", "João",
@@ -67,6 +66,7 @@ public static class SmartRecoveryDataSeeder
     {
         Name = $"{Pick(FirstNames, random)} {Pick(LastNames, random)}",
         Email = $"cliente{index + 1}@example.com",
+        Phone = $"+55 {random.Next(11, 99)} 9{random.Next(1000, 9999)}-{random.Next(1000, 9999)}",
         Document = $"{random.Next(100, 999)}.{random.Next(100, 999)}.{random.Next(100, 999)}-{random.Next(10, 99)}"
     };
 
@@ -145,7 +145,7 @@ public static class SmartRecoveryDataSeeder
 
             var input = BuildScoreInput(customerHistory, payment, declineReason!.Value, attemptDate);
             var breakdown = RecoveryScoreCalculator.CalculateBreakdown(input);
-            var action = RecoveryDecisionEngine.Decide(breakdown.Total, declineReason.Value);
+            var action = RecoveryDecisionEngine.Decide(breakdown.Total, declineReason.Value, attemptCount);
 
             var analysis = new RecoveryAnalysis
             {
@@ -187,6 +187,10 @@ public static class SmartRecoveryDataSeeder
                 subscription.EndDate = attemptDate;
                 analysis.ExecutedAt = attemptDate;
             }
+            else if (action == RecoveryAction.SendPaymentReminderEmail)
+            {
+                analysis.ExecutedAt = attemptDate;
+            }
 
             // RequestPaymentMethodUpdate e ManualReview dependem de ação externa — ExecutedAt fica em aberto.
             return;
@@ -209,13 +213,13 @@ public static class SmartRecoveryDataSeeder
         return new RecoveryScoreInput(declineReason, totalPayments, successfulPayments, previouslyRecovered, recentDeclines, recentAttempts);
     }
 
-    /// <summary>Mesma distribuição de PaymentGatewaySimulator (75% aprovação), mas com Random seedável para o seed ser reprodutível.</summary>
+    /// <summary>Mesma distribuição de PaymentGatewaySimulator (75% aprovação, motivos via DeclineReasonSimulator), mas com Random seedável para o seed ser reprodutível.</summary>
     private static (PaymentStatus Status, DeclineReason? DeclineReason) SimulateCharge(Random random)
     {
         if (random.NextDouble() < ApprovalRate)
             return (PaymentStatus.Approved, null);
 
-        return (PaymentStatus.Declined, DeclineReasons[random.Next(DeclineReasons.Length)]);
+        return (PaymentStatus.Declined, DeclineReasonSimulator.Pick(random));
     }
 
     private static string Pick(string[] values, Random random) => values[random.Next(values.Length)];

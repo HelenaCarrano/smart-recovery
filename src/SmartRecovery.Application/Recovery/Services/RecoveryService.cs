@@ -26,7 +26,7 @@ public class RecoveryService(
 
         var input = await BuildScoreInputAsync(payment, cancellationToken);
         var breakdown = RecoveryScoreCalculator.CalculateBreakdown(input);
-        var action = RecoveryDecisionEngine.Decide(breakdown.Total, input.DeclineReason);
+        var action = RecoveryDecisionEngine.Decide(breakdown.Total, input.DeclineReason, payment.AttemptCount);
 
         var analysis = new RecoveryAnalysis
         {
@@ -102,6 +102,13 @@ public class RecoveryService(
         {
             payment.ScheduledRetryAt = DateTime.UtcNow.Add(delay);
             paymentRepository.Update(payment);
+            analysis.ExecutedAt = DateTime.UtcNow;
+            return;
+        }
+
+        if (analysis.RecommendedAction == RecoveryAction.SendPaymentReminderEmail)
+        {
+            // O e-mail de aviso/regularização com link de pagamento é disparado para o cliente
             analysis.ExecutedAt = DateTime.UtcNow;
             return;
         }

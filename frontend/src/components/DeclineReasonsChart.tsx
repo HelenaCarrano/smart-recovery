@@ -11,8 +11,8 @@ interface DeclineReasonsChartProps {
   state: AsyncState<DeclineReasonCount[]>
 }
 
-/** Cor de recusa (rose-600) — mesma paleta usada em StatusBadge/PaymentsBreakdownChart. */
-const BAR_COLOR = '#e11d48'
+/** Rose-400 — mais suave que o rose-600 usado em StatusBadge/PaymentsBreakdownChart, para não pesar num gráfico de barras cheio. */
+const BAR_COLOR = '#fb7185'
 
 export function DeclineReasonsChart({ state }: DeclineReasonsChartProps) {
   return (

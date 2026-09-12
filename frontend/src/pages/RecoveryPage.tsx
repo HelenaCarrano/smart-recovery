@@ -1,5 +1,6 @@
 import { AlertIcon, RecoveryIcon } from '@/components/icons'
 import { KpiCard } from '@/components/KpiCard'
+import { RecoveryOpportunityDetailModal } from '@/components/RecoveryOpportunityDetailModal'
 import { RecoveryOpportunityItem } from '@/components/RecoveryOpportunityItem'
 import { RecoverySortControl, type RecoverySortOption } from '@/components/RecoverySortControl'
 import { Card } from '@/components/ui/Card'
@@ -35,6 +36,7 @@ function sortOpportunities(opportunities: RecoveryOpportunity[], sortBy: Recover
 export function RecoveryPage() {
   const state = useRecoveryOpportunities()
   const [sortBy, setSortBy] = useState<RecoverySortOption>('amount')
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null)
 
   const opportunities = state.status === 'success' ? state.data : EMPTY_OPPORTUNITIES
 
@@ -49,12 +51,23 @@ export function RecoveryPage() {
   // Só faz sentido mostrar os totais quando a lista já carregou — evita "R$ 0" piscando durante o loading.
   const revenueAtRisk = useMemo(() => opportunities.reduce((sum, o) => sum + o.amount, 0), [opportunities])
 
+  const averageScore = useMemo(() => {
+    if (opportunities.length === 0) return null
+    return Math.round(opportunities.reduce((sum, o) => sum + o.recoveryScore, 0) / opportunities.length)
+  }, [opportunities])
+
   return (
     <div className="space-y-6">
       {state.status === 'success' && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <KpiCard label="Receita em risco" value={formatCurrency(revenueAtRisk)} tone="declined" icon={RecoveryIcon} />
           <KpiCard label="Ações pendentes" value={String(opportunities.length)} tone="attention" icon={AlertIcon} />
+          <KpiCard
+            label="Recovery Score médio"
+            value={averageScore !== null ? `${averageScore}/100` : '—'}
+            tone="attention"
+            icon={RecoveryIcon}
+          />
         </div>
       )}
 
@@ -78,10 +91,15 @@ export function RecoveryPage() {
                 key={opportunity.id}
                 opportunity={opportunity}
                 highlight={opportunity.id === highestValueId}
+                onClick={() => setSelectedPaymentId(opportunity.paymentId)}
               />
             ))}
           </div>
         ))}
+
+      {selectedPaymentId && (
+        <RecoveryOpportunityDetailModal paymentId={selectedPaymentId} onClose={() => setSelectedPaymentId(null)} />
+      )}
     </div>
   )
 }

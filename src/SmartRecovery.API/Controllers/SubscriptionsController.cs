@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.API.Common;
 using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Subscriptions.DTOs;
 using SmartRecovery.Application.Subscriptions.Services;
@@ -15,7 +16,12 @@ public class SubscriptionsController(ISubscriptionService subscriptionService) :
     [HttpGet]
     public async Task<ActionResult<PagedResult<SubscriptionListItemDto>>> GetPaged(
         [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] SubscriptionStatus? status, CancellationToken cancellationToken) =>
-        Ok(await subscriptionService.GetPagedAsync(page <= 0 ? 1 : page, pageSize <= 0 ? 25 : pageSize, status, cancellationToken));
+        Ok(await subscriptionService.GetPagedAsync(Pagination.NormalizePage(page), Pagination.NormalizePageSize(pageSize, 25), status, cancellationToken));
+
+    /// <summary>Indicadores consolidados (ativas, MRR, distribuição por plano) para o dashboard de assinaturas.</summary>
+    [HttpGet("summary")]
+    public async Task<ActionResult<SubscriptionsSummaryDto>> GetSummary(CancellationToken cancellationToken) =>
+        Ok(await subscriptionService.GetSummaryAsync(cancellationToken));
 
     /// <summary>Busca uma assinatura pelo Id.</summary>
     [HttpGet("{id:guid}")]

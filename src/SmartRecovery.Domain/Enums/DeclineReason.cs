@@ -12,5 +12,9 @@ public enum DeclineReason
     InvalidCard,
     TemporaryError,
     BlockedCard,
+    SuspectedFraud,
+    CardLimitExceeded,
+    SecurityCodeInvalid,
+    IssuerUnavailable,
     Unknown
 }

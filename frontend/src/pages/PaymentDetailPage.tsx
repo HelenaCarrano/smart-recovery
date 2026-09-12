@@ -1,3 +1,4 @@
+import { PaymentReminderEmailPreview } from '@/components/PaymentReminderEmailPreview'
 import { RecommendedActionCard } from '@/components/RecommendedActionCard'
 import { RecoveryScoreBreakdownCard } from '@/components/RecoveryScoreBreakdownCard'
 import { StatusBadge } from '@/components/StatusBadge'
@@ -32,7 +33,7 @@ export function PaymentDetailPage() {
       <Card>
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
           <Field label="Valor" value={formatCurrency(payment.amount)} />
-          <Field label="Status" value={<StatusBadge status={payment.status} />} />
+          <Field label="Status" value={<StatusBadge status={payment.status} attemptCount={payment.attemptCount} />} />
           <Field label="Cliente" value={customerName} />
           <Field label="Data" value={formatDateTime(payment.createdAt)} />
           <Field label="Plano" value={planName} />
@@ -54,7 +55,15 @@ export function PaymentDetailPage() {
                 action={recoveryAnalysis.recommendedAction}
                 declineReason={payment.declineReason}
                 executedAt={recoveryAnalysis.executedAt}
+                paymentStatus={payment.status}
               />
+              {recoveryAnalysis.recommendedAction === 'SendPaymentReminderEmail' && (
+                <PaymentReminderEmailPreview
+                  customerName={customerName}
+                  amount={payment.amount}
+                  executedAt={recoveryAnalysis.executedAt}
+                />
+              )}
             </>
           ) : (
             <Card>

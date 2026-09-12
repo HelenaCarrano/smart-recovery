@@ -11,4 +11,5 @@ public interface ISubscriptionService
     Task<PagedResult<SubscriptionListItemDto>> GetPagedAsync(int page, int pageSize, SubscriptionStatus? status, CancellationToken cancellationToken = default);
     Task<SubscriptionDto> CreateAsync(CreateSubscriptionDto dto, CancellationToken cancellationToken = default);
     Task CancelAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<SubscriptionsSummaryDto> GetSummaryAsync(CancellationToken cancellationToken = default);
 }

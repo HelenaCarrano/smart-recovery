@@ -85,6 +85,41 @@ public class SubscriptionService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<SubscriptionsSummaryDto> GetSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        var total = await subscriptionRepository.CountAsync(cancellationToken);
+        var active = await subscriptionRepository.GetByStatusAsync(SubscriptionStatus.Active, cancellationToken);
+        var paused = await subscriptionRepository.CountByStatusAsync(SubscriptionStatus.Paused, cancellationToken);
+        var cancelled = await subscriptionRepository.CountByStatusAsync(SubscriptionStatus.Cancelled, cancellationToken);
+
+        var monthlyRecurringRevenue = active.Sum(s => BillingCycleCalculator.MonthlyEquivalent(s.Plan.Price, s.Plan.Periodicity));
+
+        var planDistribution = active
+            .GroupBy(s => s.Plan)
+            .Select(g =>
+            {
+                var monthlyRevenue = g.Sum(s => BillingCycleCalculator.MonthlyEquivalent(s.Plan.Price, s.Plan.Periodicity));
+                return new PlanDistributionDto(
+                    g.Key.Id,
+                    g.Key.Name,
+                    g.Count(),
+                    monthlyRevenue,
+                    monthlyRecurringRevenue > 0 ? (double)(monthlyRevenue / monthlyRecurringRevenue) * 100 : 0);
+            })
+            .OrderByDescending(p => p.MonthlyRevenue)
+            .ToList();
+
+        return new SubscriptionsSummaryDto(
+            total,
+            active.Count,
+            total > 0 ? (double)active.Count / total * 100 : 0,
+            paused,
+            cancelled,
+            total > 0 ? (double)cancelled / total * 100 : 0,
+            monthlyRecurringRevenue,
+            planDistribution);
+    }
+
     private static SubscriptionDto ToDto(Subscription s) => new(
         s.Id, s.CustomerId, s.PlanId, s.Plan.Name, s.Plan.Price, s.StartDate, s.NextBillingDate, s.EndDate, s.Status);
 }
