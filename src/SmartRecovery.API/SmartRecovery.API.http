@@ -1,0 +1,6 @@
+@SmartRecovery.API_HostAddress = http://localhost:5159
+
+GET {{SmartRecovery.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

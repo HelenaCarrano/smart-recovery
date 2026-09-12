@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB4657BD-93F5-43FF-81AA-217BBA0020DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartRecovery.Domain", "src\SmartRecovery.Domain\SmartRecovery.Domain.csproj", "{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartRecovery.Application", "src\SmartRecovery.Application\SmartRecovery.Application.csproj", "{D30F15F4-698F-4010-BA6D-ACD11577FD05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartRecovery.Infrastructure", "src\SmartRecovery.Infrastructure\SmartRecovery.Infrastructure.csproj", "{4E30D5D1-7B99-4CEB-837E-D6E851A222A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartRecovery.API", "src\SmartRecovery.API\SmartRecovery.API.csproj", "{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{029C8F9C-2844-4C53-B00C-180EC5C38592}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartRecovery.Tests", "tests\SmartRecovery.Tests\SmartRecovery.Tests.csproj", "{0AE511EE-6676-47E0-9339-45A23E45DA4F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D30F15F4-698F-4010-BA6D-ACD11577FD05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D30F15F4-698F-4010-BA6D-ACD11577FD05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D30F15F4-698F-4010-BA6D-ACD11577FD05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D30F15F4-698F-4010-BA6D-ACD11577FD05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E30D5D1-7B99-4CEB-837E-D6E851A222A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E30D5D1-7B99-4CEB-837E-D6E851A222A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E30D5D1-7B99-4CEB-837E-D6E851A222A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E30D5D1-7B99-4CEB-837E-D6E851A222A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AE511EE-6676-47E0-9339-45A23E45DA4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AE511EE-6676-47E0-9339-45A23E45DA4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AE511EE-6676-47E0-9339-45A23E45DA4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AE511EE-6676-47E0-9339-45A23E45DA4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{15FFF652-6ED9-40C0-88E0-D6F1CCB88CDF} = {AB4657BD-93F5-43FF-81AA-217BBA0020DA}
+		{D30F15F4-698F-4010-BA6D-ACD11577FD05} = {AB4657BD-93F5-43FF-81AA-217BBA0020DA}
+		{4E30D5D1-7B99-4CEB-837E-D6E851A222A2} = {AB4657BD-93F5-43FF-81AA-217BBA0020DA}
+		{32A4BC2D-5B11-4DDB-9871-D4FBD11DD043} = {AB4657BD-93F5-43FF-81AA-217BBA0020DA}
+		{0AE511EE-6676-47E0-9339-45A23E45DA4F} = {029C8F9C-2844-4C53-B00C-180EC5C38592}
+	EndGlobalSection
+EndGlobal
