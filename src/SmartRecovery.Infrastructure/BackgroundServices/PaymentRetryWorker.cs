@@ -108,9 +108,24 @@ public class PaymentRetryWorker(
         if (duePayments.Count == 0)
             return;
 
-        foreach (var payment in duePayments)
-            await paymentService.ProcessAsync(payment.Id, cancellationToken);
+        var retriedCount = 0;
 
-        logger.LogInformation("Retried {Count} declined payment(s) due for retry.", duePayments.Count);
+        foreach (var payment in duePayments)
+        {
+            try
+            {
+                await paymentService.ProcessAsync(payment.Id, cancellationToken);
+                retriedCount++;
+            }
+            catch (Exception ex)
+            {
+                // Mesma lógica de isolamento de BillDueSubscriptionsAsync: uma falha neste pagamento
+                // não deve impedir os demais, e ele continua "devido" para a próxima checagem do worker.
+                logger.LogError(ex, "Failed to retry payment {PaymentId}; it remains due and will be retried next cycle.", payment.Id);
+            }
+        }
+
+        if (retriedCount > 0)
+            logger.LogInformation("Retried {Count} declined payment(s) due for retry.", retriedCount);
     }
 }

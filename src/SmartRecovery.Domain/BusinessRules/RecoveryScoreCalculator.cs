@@ -32,16 +32,23 @@ public static class RecoveryScoreCalculator
         _ => 50
     };
 
-    public static int Calculate(RecoveryScoreInput input)
+    /// <summary>
+    /// Calcula o Recovery Score expondo a contribuição de cada fator individualmente
+    /// (<see cref="RecoveryScoreBreakdown.Total"/> é o score final) — usado pela API para
+    /// explicar como o score foi composto, sem que o frontend precise reimplementar esta regra.
+    /// </summary>
+    public static RecoveryScoreBreakdown CalculateBreakdown(RecoveryScoreInput input)
     {
-        var score = BaseScoreFor(input.DeclineReason);
+        var baseScore = BaseScoreFor(input.DeclineReason);
+        var historyAdjustment = HistoryAdjustment(input);
+        var recoveryTrackRecordBonus = RecoveryTrackRecordBonus(input);
+        var recentDeclinesAdjustment = -RecentDeclinesPenalty(input);
+        var recentAttemptsAdjustment = -RecentAttemptsPenalty(input);
 
-        score += HistoryAdjustment(input);
-        score += RecoveryTrackRecordBonus(input);
-        score -= RecentDeclinesPenalty(input);
-        score -= RecentAttemptsPenalty(input);
+        var rawTotal = baseScore + historyAdjustment + recoveryTrackRecordBonus + recentDeclinesAdjustment + recentAttemptsAdjustment;
+        var total = Math.Clamp(rawTotal, MinScore, MaxScore);
 
-        return Math.Clamp(score, MinScore, MaxScore);
+        return new RecoveryScoreBreakdown(baseScore, historyAdjustment, recoveryTrackRecordBonus, recentDeclinesAdjustment, recentAttemptsAdjustment, total);
     }
 
     /// <summary>

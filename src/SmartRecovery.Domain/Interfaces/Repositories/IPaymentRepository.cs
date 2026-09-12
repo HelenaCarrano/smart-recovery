@@ -1,5 +1,4 @@
 using SmartRecovery.Domain.Entities;
-using SmartRecovery.Domain.Enums;
 
 namespace SmartRecovery.Domain.Interfaces.Repositories;
 
@@ -8,8 +7,6 @@ public interface IPaymentRepository : IRepository<Payment>
     Task<Payment?> GetWithDetailsAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Payment>> GetByCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<Payment>> GetByStatusAsync(PaymentStatus status, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Pagamentos com retry agendado (ScheduledRetryAt) para até o instante informado.
