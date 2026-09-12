@@ -41,7 +41,7 @@ duplicada no frontend. O backend é a única fonte da verdade.
 - **Dashboard**: KPIs (recovery rate, receita recuperada, ações pendentes), distribuição de pagamentos, tendência diária de aprovados/recusados, motivos de recusa mais comuns.
 - **Pagamentos**: listagem paginada com filtros (status, motivo, cliente, período), detalhe com linha do tempo completa e breakdown do Recovery Score.
 - **Recuperação**: fila de oportunidades pendentes ordenável por impacto financeiro, score ou ação, com resumo de receita em risco.
-- **Clientes**: listagem paginada com busca, detalhe com histórico de pagamentos e recuperações.
+- **Clientes**: listagem paginada com busca, detalhe com histórico de pagamentos (Recovery Score e ação inline para os que já foram recusados).
 - **Assinaturas**: listagem paginada filtrável por status, com próxima data de cobrança.
 - **Webhooks**: endpoint idempotente para receber resultado de cobranças de um provedor externo (simulado).
 
@@ -141,21 +141,25 @@ API em `http://localhost:5000` (Swagger em `/`), frontend em `http://localhost:5
 
 ## Screenshots
 
-| Dashboard | Recuperação |
-|---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Recuperação](docs/screenshots/recovery.png) |
+O Dashboard já aparece no topo deste README. Abaixo, o restante do fluxo:
 
-| Pagamentos | Detalhe do pagamento |
-|---|---|
-| ![Pagamentos](docs/screenshots/payments.png) | ![Detalhe do pagamento](docs/screenshots/payment-detail.png) |
+**Pagamentos** — listagem paginada e filtrável, com Recovery Score inline para os recusados.
+![Pagamentos](docs/screenshots/payments.png)
 
-| Clientes | Detalhe do cliente |
-|---|---|
-| ![Clientes](docs/screenshots/customers.png) | ![Detalhe do cliente](docs/screenshots/customer-detail.png) |
+**Detalhe do pagamento** — linha do tempo completa e breakdown do Recovery Score.
+![Detalhe do pagamento](docs/screenshots/payment-detail.png)
 
-| Assinaturas |
-|---|
-| ![Assinaturas](docs/screenshots/subscriptions.png) |
+**Recuperação** — fila de oportunidades pendentes ordenada por impacto financeiro.
+![Recuperação](docs/screenshots/recovery.png)
+
+**Clientes** — busca e histórico de pagamentos/recuperação por cliente.
+![Clientes](docs/screenshots/customers.png)
+
+**Detalhe do cliente** — histórico de pagamentos com Recovery Score e ação, quando aplicável.
+![Detalhe do cliente](docs/screenshots/customer-detail.png)
+
+**Assinaturas** — plano, periodicidade e próxima cobrança.
+![Assinaturas](docs/screenshots/subscriptions.png)
 
 ## Limitações conhecidas
 

@@ -12,8 +12,10 @@ async function fetchCustomerDetail(customerId: string): Promise<CustomerDetail> 
     getPaymentsByCustomer(customerId),
   ])
 
-  // Histórico de recuperação só existe para pagamentos que já foram recusados alguma vez.
-  const declinedPayments = payments.filter((payment) => payment.declineReason !== null)
+  // Histórico de recuperação existe para qualquer pagamento já recusado alguma vez — inclui tanto
+  // os que seguem recusados (declineReason ainda preenchido) quanto os recuperados por retry depois
+  // (declineReason já foi limpo ao aprovar, mas attemptCount > 1 denuncia que houve recusa antes).
+  const declinedPayments = payments.filter((payment) => payment.declineReason !== null || payment.attemptCount > 1)
   const analyses = await Promise.all(declinedPayments.map((payment) => getRecoveryAnalysisByPayment(payment.id)))
 
   const recoveryHistory: RecoveryHistoryEntry[] = declinedPayments

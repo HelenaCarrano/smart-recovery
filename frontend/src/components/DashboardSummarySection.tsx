@@ -1,4 +1,4 @@
-import { AlertIcon, CheckCircleIcon, PaymentsIcon, RecoveryIcon } from '@/components/icons'
+import { AlertIcon, CheckCircleIcon, RecoveryIcon } from '@/components/icons'
 import { KpiCard } from '@/components/KpiCard'
 import { PaymentsBreakdownChart } from '@/components/PaymentsBreakdownChart'
 import { Card } from '@/components/ui/Card'
@@ -20,18 +20,14 @@ export function DashboardSummarySection({ state }: DashboardSummarySectionProps)
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* "Pagamentos recusados" não vira KPI aqui de propósito — o gráfico logo abaixo já mostra
+          essa contagem com percentual, um KPI repetindo o mesmo número não agregaria nada. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard
           label="Recovery Rate"
           value={formatPercent(summary.recoveryRate)}
           tone="attention"
           icon={RecoveryIcon}
-        />
-        <KpiCard
-          label="Pagamentos recusados"
-          value={String(summary.declinedPayments)}
-          tone="declined"
-          icon={PaymentsIcon}
         />
         <KpiCard
           label="Ações pendentes"

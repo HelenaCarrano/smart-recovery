@@ -58,7 +58,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -71,19 +71,22 @@ app.UseSerilogRequestLogging();
 // Precisa vir antes de tudo para capturar erros de qualquer parte do pipeline.
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+// Habilita Swagger para fácil visualização e teste no portfólio
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Recovery API v1");
-        options.RoutePrefix = string.Empty;
-        options.DocumentTitle = "Smart Recovery API";
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Recovery API v1");
+    options.RoutePrefix = string.Empty;
+    options.DocumentTitle = "Smart Recovery API";
+});
 
 app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthorization();
 app.MapControllers();
 

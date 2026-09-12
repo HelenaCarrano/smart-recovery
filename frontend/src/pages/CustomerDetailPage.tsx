@@ -11,9 +11,11 @@ import { ScoreIndicator } from '@/components/ui/ScoreIndicator'
 import { useCustomerDetail } from '@/hooks/useCustomerDetail'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import { declineReasonLabel } from '@/lib/labels'
+import type { RecoveryAnalysis } from '@/types/recovery'
 import type { Payment } from '@/types/payment'
 import type { Subscription } from '@/types/subscription'
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 const subscriptionColumns: DataTableColumn<Subscription>[] = [
@@ -23,21 +25,50 @@ const subscriptionColumns: DataTableColumn<Subscription>[] = [
   { key: 'nextBilling', header: 'Próxima cobrança', render: (row) => formatDateTime(row.nextBillingDate) },
 ]
 
-const paymentColumns: DataTableColumn<Payment>[] = [
-  { key: 'amount', header: 'Valor', render: (row) => formatCurrency(row.amount) },
-  { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-  { key: 'declineReason', header: 'Motivo da recusa', render: (row) => declineReasonLabel(row.declineReason) },
-  { key: 'date', header: 'Data', render: (row) => formatDateTime(row.createdAt) },
-]
+/**
+ * Score/Ação vêm de recoveryByPaymentId (só existe para pagamentos já recusados alguma vez) — em vez de
+ * uma seção "Histórico de recuperação" separada repetindo valor/motivo/data que já estão aqui.
+ */
+function buildPaymentColumns(recoveryByPaymentId: Map<string, RecoveryAnalysis>): DataTableColumn<Payment>[] {
+  return [
+    { key: 'amount', header: 'Valor', render: (row) => formatCurrency(row.amount) },
+    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'declineReason', header: 'Motivo da recusa', render: (row) => declineReasonLabel(row.declineReason) },
+    { key: 'date', header: 'Data', render: (row) => formatDateTime(row.createdAt) },
+    {
+      key: 'recoveryScore',
+      header: 'Recovery Score',
+      render: (row) => {
+        const analysis = recoveryByPaymentId.get(row.id)
+        return analysis ? <ScoreIndicator score={analysis.recoveryScore} /> : '—'
+      },
+    },
+    {
+      key: 'recommendedAction',
+      header: 'Ação',
+      render: (row) => {
+        const analysis = recoveryByPaymentId.get(row.id)
+        return analysis ? <RecoveryActionBadge action={analysis.recommendedAction} /> : '—'
+      },
+    },
+  ]
+}
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const state = useCustomerDetail(id ?? '')
 
+  const recoveryByPaymentId = useMemo(() => {
+    if (state.status !== 'success') return new Map<string, RecoveryAnalysis>()
+    return new Map(state.data.recoveryHistory.map(({ payment, analysis }) => [payment.id, analysis]))
+  }, [state])
+
+  const paymentColumns = useMemo(() => buildPaymentColumns(recoveryByPaymentId), [recoveryByPaymentId])
+
   if (state.status === 'loading') return <LoadingState label="Carregando cliente…" />
   if (state.status === 'error') return <ErrorState message={state.error} onRetry={state.refetch} />
 
-  const { customer, subscriptions, payments, recoveryHistory } = state.data
+  const { customer, subscriptions, payments } = state.data
 
   return (
     <div className="space-y-6">
@@ -75,35 +106,6 @@ export function CustomerDetailPage() {
         )}
       </Card>
 
-      <Card>
-        <h2 className="mb-4 text-sm font-semibold text-slate-900">Histórico de recuperação</h2>
-        {recoveryHistory.length === 0 ? (
-          <EmptyState
-            title="Nenhuma recuperação registrada"
-            description="Este cliente nunca teve um pagamento recusado."
-          />
-        ) : (
-          <div className="space-y-3">
-            {recoveryHistory.map(({ payment, analysis }) => (
-              <div
-                key={analysis.id}
-                className="flex flex-col gap-4 rounded-lg border border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium text-slate-900">{formatCurrency(payment.amount)}</p>
-                  <p className="mt-0.5 text-sm text-slate-500">
-                    {declineReasonLabel(payment.declineReason)} · Analisado em {formatDateTime(analysis.analyzedAt)}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                  <ScoreIndicator score={analysis.recoveryScore} />
-                  <RecoveryActionBadge action={analysis.recommendedAction} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
     </div>
   )
 }
