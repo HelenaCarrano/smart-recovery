@@ -1,4 +1,5 @@
 import { AppLayout } from '@/layouts/AppLayout'
+import { CustomerDetailPage } from '@/pages/CustomerDetailPage'
 import { CustomersPage } from '@/pages/CustomersPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { PaymentDetailPage } from '@/pages/PaymentDetailPage'
@@ -16,6 +17,7 @@ function App() {
         <Route path="/payments/:id" element={<PaymentDetailPage />} />
         <Route path="/recovery" element={<RecoveryPage />} />
         <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
       </Route>
     </Routes>
