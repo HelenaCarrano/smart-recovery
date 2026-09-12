@@ -39,6 +39,18 @@ public class RecoveryAnalysis : BaseEntity
     public int RecentDeclines { get; set; }
     public int RecentAttempts { get; set; }
 
+    // ── Detalhamento do score por fator ──────────────────────────────────────
+    // Espelha SmartRecovery.Domain.BusinessRules.RecoveryScoreBreakdown, persistido
+    // no momento da análise para que a API explique a composição do score sem que
+    // nenhum consumidor (frontend, relatórios) precise reimplementar a fórmula.
+    // Já vêm com o sinal correto: RecoveryScore = soma de todos, clampada em [0, 100].
+
+    public int BaseScore { get; set; }
+    public int HistoryAdjustment { get; set; }
+    public int RecoveryTrackRecordBonus { get; set; }
+    public int RecentDeclinesAdjustment { get; set; }
+    public int RecentAttemptsAdjustment { get; set; }
+
     // ── Navegação ─────────────────────────────────────────────────────────────
     public Payment Payment { get; set; } = null!;
 }

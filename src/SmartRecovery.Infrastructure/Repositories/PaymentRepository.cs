@@ -20,9 +20,6 @@ public class PaymentRepository(SmartRecoveryDbContext context)
     public async Task<IReadOnlyList<Payment>> GetByCustomerAsync(Guid customerId, CancellationToken cancellationToken = default) =>
         await DbSet.Where(p => p.CustomerId == customerId).ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<Payment>> GetByStatusAsync(PaymentStatus status, CancellationToken cancellationToken = default) =>
-        await DbSet.Where(p => p.Status == status).ToListAsync(cancellationToken);
-
     public async Task<IReadOnlyList<Payment>> GetDueForRetryAsync(DateTime asOf, CancellationToken cancellationToken = default) =>
         await DbSet
             .Include(p => p.Subscription)

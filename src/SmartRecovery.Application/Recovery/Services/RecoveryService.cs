@@ -25,19 +25,24 @@ public class RecoveryService(
             throw new InvalidOperationException("Recovery analysis can only run for a payment with status Declined.");
 
         var input = await BuildScoreInputAsync(payment, cancellationToken);
-        var score = RecoveryScoreCalculator.Calculate(input);
-        var action = RecoveryDecisionEngine.Decide(score, input.DeclineReason);
+        var breakdown = RecoveryScoreCalculator.CalculateBreakdown(input);
+        var action = RecoveryDecisionEngine.Decide(breakdown.Total, input.DeclineReason);
 
         var analysis = new RecoveryAnalysis
         {
             PaymentId = payment.Id,
-            RecoveryScore = score,
+            RecoveryScore = breakdown.Total,
             RecommendedAction = action,
             TotalPayments = input.TotalPayments,
             SuccessfulPayments = input.SuccessfulPayments,
             PreviouslyRecoveredPayments = input.PreviouslyRecoveredPayments,
             RecentDeclines = input.RecentDeclines,
-            RecentAttempts = input.RecentAttempts
+            RecentAttempts = input.RecentAttempts,
+            BaseScore = breakdown.BaseScore,
+            HistoryAdjustment = breakdown.HistoryAdjustment,
+            RecoveryTrackRecordBonus = breakdown.RecoveryTrackRecordBonus,
+            RecentDeclinesAdjustment = breakdown.RecentDeclinesAdjustment,
+            RecentAttemptsAdjustment = breakdown.RecentAttemptsAdjustment
         };
 
         await ApplyActionAsync(payment, analysis, cancellationToken);
@@ -117,5 +122,6 @@ public class RecoveryService(
 
     private static RecoveryAnalysisDto ToDto(RecoveryAnalysis a) => new(
         a.Id, a.PaymentId, a.RecoveryScore, a.RecommendedAction, a.AnalyzedAt, a.ExecutedAt,
-        a.TotalPayments, a.SuccessfulPayments, a.PreviouslyRecoveredPayments, a.RecentDeclines, a.RecentAttempts);
+        a.TotalPayments, a.SuccessfulPayments, a.PreviouslyRecoveredPayments, a.RecentDeclines, a.RecentAttempts,
+        a.BaseScore, a.HistoryAdjustment, a.RecoveryTrackRecordBonus, a.RecentDeclinesAdjustment, a.RecentAttemptsAdjustment);
 }

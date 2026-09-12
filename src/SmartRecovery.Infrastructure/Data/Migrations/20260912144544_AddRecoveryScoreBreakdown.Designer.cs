@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartRecovery.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SmartRecovery.Infrastructure.Data;
 namespace SmartRecovery.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(SmartRecoveryDbContext))]
-    partial class SmartRecoveryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260912144544_AddRecoveryScoreBreakdown")]
+    partial class AddRecoveryScoreBreakdown
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
