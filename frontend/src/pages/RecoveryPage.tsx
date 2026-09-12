@@ -1,3 +1,5 @@
+import { AlertIcon, RecoveryIcon } from '@/components/icons'
+import { KpiCard } from '@/components/KpiCard'
 import { RecoveryOpportunityItem } from '@/components/RecoveryOpportunityItem'
 import { RecoverySortControl, type RecoverySortOption } from '@/components/RecoverySortControl'
 import { Card } from '@/components/ui/Card'
@@ -5,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { useRecoveryOpportunities } from '@/hooks/useRecoveryOpportunities'
+import { formatCurrency } from '@/lib/format'
 import { recoveryActionLabel } from '@/lib/labels'
 import type { RecoveryOpportunity } from '@/types/recovery'
 import { useMemo, useState } from 'react'
@@ -43,8 +46,18 @@ export function RecoveryPage() {
 
   const sorted = useMemo(() => sortOpportunities(opportunities, sortBy), [opportunities, sortBy])
 
+  // Só faz sentido mostrar os totais quando a lista já carregou — evita "R$ 0" piscando durante o loading.
+  const revenueAtRisk = useMemo(() => opportunities.reduce((sum, o) => sum + o.amount, 0), [opportunities])
+
   return (
     <div className="space-y-6">
+      {state.status === 'success' && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <KpiCard label="Receita em risco" value={formatCurrency(revenueAtRisk)} tone="declined" icon={RecoveryIcon} />
+          <KpiCard label="Ações pendentes" value={String(opportunities.length)} tone="attention" icon={AlertIcon} />
+        </div>
+      )}
+
       <RecoverySortControl value={sortBy} onChange={setSortBy} />
 
       {state.status === 'loading' && <LoadingState label="Carregando oportunidades de recuperação…" />}

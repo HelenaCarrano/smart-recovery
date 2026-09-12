@@ -87,7 +87,12 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-await app.MigrateAndSeedDatabaseAsync();
+// Em testes de integração o schema é migrado sem o seed completo (80 clientes simulados) — cada
+// teste popula só os dados que precisa via DbContext direto, então o seed ali seria puro overhead.
+if (app.Environment.IsEnvironment("Testing"))
+    await app.MigrateDatabaseAsync();
+else
+    await app.MigrateAndSeedDatabaseAsync();
 
 app.Run();
 

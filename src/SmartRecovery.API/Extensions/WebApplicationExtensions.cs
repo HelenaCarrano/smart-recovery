@@ -15,4 +15,13 @@ public static class WebApplicationExtensions
         await context.Database.MigrateAsync();
         await SmartRecoveryDataSeeder.SeedAsync(context);
     }
+
+    /// <summary>Só a migration, sem o seed — usado em testes de integração (ambiente Testing).</summary>
+    public static async Task MigrateDatabaseAsync(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<SmartRecoveryDbContext>();
+
+        await context.Database.MigrateAsync();
+    }
 }
