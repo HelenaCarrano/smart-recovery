@@ -90,12 +90,20 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// Em testes de integração o schema é migrado sem o seed completo (80 clientes simulados) — cada
-// teste popula só os dados que precisa via DbContext direto, então o seed ali seria puro overhead.
-if (app.Environment.IsEnvironment("Testing"))
-    await app.MigrateDatabaseAsync();
-else
-    await app.MigrateAndSeedDatabaseAsync();
+try
+{
+    Serilog.Log.Information("Conectando ao banco de dados e executando migrações...");
+    if (app.Environment.IsEnvironment("Testing"))
+        await app.MigrateDatabaseAsync();
+    else
+        await app.MigrateAndSeedDatabaseAsync();
+    Serilog.Log.Information("Banco de dados migrado e inicializado com sucesso!");
+}
+catch (Exception ex)
+{
+    Serilog.Log.Fatal(ex, "Erro fatal ao conectar ou migrar o banco de dados.");
+    throw;
+}
 
 app.Run();
 
