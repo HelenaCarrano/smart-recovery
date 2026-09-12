@@ -1,10 +1,16 @@
 # Smart Recovery
 
-Plataforma de recuperação inteligente de pagamentos recorrentes, construída com C# / .NET 8 e React/TypeScript.
+Projeto de portfólio em C# / .NET 8 (Clean Architecture) + React/TypeScript, para praticar um domínio
+não trivial: recuperação de pagamentos recorrentes recusados.
 
-Quando uma cobrança recorrente falha, o Smart Recovery analisa o histórico do cliente e o motivo da recusa, calcula um **Recovery Score** explicável (0–100) e recomenda automaticamente a melhor estratégia de recuperação — retry, atualização de forma de pagamento, revisão manual ou cancelamento da assinatura.
+O sistema simula o ciclo de cobrança de uma assinatura — quando um pagamento é recusado, calcula um
+**Recovery Score** explicável (0–100) a partir do histórico do cliente e do motivo da recusa, e
+recomenda uma ação (retry, pedir atualização de forma de pagamento, revisão manual ou cancelamento da
+assinatura).
 
-Projeto de portfólio: dados simulados, sem gateway de pagamento real, sem autenticação (ver [Limitações conhecidas](#limitações-conhecidas)).
+![Dashboard do Smart Recovery](docs/screenshots/dashboard.png)
+
+Dados simulados, sem gateway de pagamento real e sem autenticação — ver [Limitações conhecidas](#limitações-conhecidas).
 
 ## Arquitetura
 

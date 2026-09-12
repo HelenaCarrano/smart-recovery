@@ -1,3 +1,4 @@
+import { DashboardIntro } from '@/components/DashboardIntro'
 import { DashboardSummarySection } from '@/components/DashboardSummarySection'
 import { DeclineReasonsChart } from '@/components/DeclineReasonsChart'
 import { PaymentsTrendChart } from '@/components/PaymentsTrendChart'
@@ -15,6 +16,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <DashboardIntro />
       <DashboardSummarySection state={summaryState} />
       <PaymentsTrendChart state={trendState} />
       <DeclineReasonsChart state={declineReasonsState} />
