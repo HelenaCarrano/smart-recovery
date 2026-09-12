@@ -1,41 +1,45 @@
-import { getCustomers } from '@/services/customerService'
-import { getPaymentsByCustomer } from '@/services/paymentService'
+import { getPayments } from '@/services/paymentService'
 import { getRecoveryAnalysisByPayment } from '@/services/recoveryService'
-import { toPaymentListItem, type PaymentListItem } from '@/types/paymentListItem'
+import type { PagedResult } from '@/types/pagedResult'
+import type { PaymentListItem } from '@/types/paymentListItem'
+import type { PaymentsFiltersState } from '@/types/paymentsFilters'
 import { useAsyncData } from './useAsyncData'
 
 /**
- * Não existe GET /api/payments (lista geral) — só por cliente. Buscamos todos os
- * clientes e, para cada um, seus pagamentos (endpoints que já existem), e juntamos
- * tudo em uma única lista. Para os pagamentos recusados, buscamos também a análise
- * de recovery correspondente (score + ação recomendada).
+ * GET /api/payments já traz customerName resolvido e pagina/filtra no servidor — nada de
+ * composição N+1 aqui. O Recovery Score/ação só existem para pagamentos recusados e não vêm
+ * no endpoint de listagem, então enriquecemos apenas os itens Declined da página atual
+ * (no máximo `pageSize` chamadas extras, não uma por pagamento do banco inteiro).
  */
-async function fetchAllPayments(): Promise<PaymentListItem[]> {
-  const customers = await getCustomers()
+async function fetchPayments(page: number, pageSize: number, filters: PaymentsFiltersState): Promise<PagedResult<PaymentListItem>> {
+  const result = await getPayments({
+    page,
+    pageSize,
+    status: filters.status === 'All' ? undefined : filters.status,
+    declineReason: filters.declineReason === 'All' ? undefined : filters.declineReason,
+    dateFrom: filters.dateFrom || undefined,
+    dateTo: filters.dateTo || undefined,
+  })
 
-  const paymentsByCustomer = await Promise.all(
-    customers.map(async (customer) => {
-      const payments = await getPaymentsByCustomer(customer.id)
-      return payments.map((payment) => ({ payment, customerName: customer.name }))
+  const items = await Promise.all(
+    result.items.map(async (item) => {
+      if (item.status !== 'Declined') return item
+
+      const analysis = await getRecoveryAnalysisByPayment(item.id)
+      return {
+        ...item,
+        recoveryScore: analysis?.recoveryScore ?? null,
+        recommendedAction: analysis?.recommendedAction ?? null,
+      }
     }),
   )
 
-  const flattened = paymentsByCustomer.flat()
-
-  return Promise.all(
-    flattened.map(async ({ payment, customerName }) => {
-      const analysis =
-        payment.status === 'Declined' ? await getRecoveryAnalysisByPayment(payment.id) : null
-
-      return toPaymentListItem(
-        payment,
-        customerName,
-        analysis && { recoveryScore: analysis.recoveryScore, recommendedAction: analysis.recommendedAction },
-      )
-    }),
-  )
+  return { ...result, items }
 }
 
-export function usePayments() {
-  return useAsyncData(fetchAllPayments, [])
+export function usePayments(page: number, pageSize: number, filters: PaymentsFiltersState) {
+  return useAsyncData(
+    () => fetchPayments(page, pageSize, filters),
+    [page, pageSize, filters.status, filters.declineReason, filters.dateFrom, filters.dateTo],
+  )
 }

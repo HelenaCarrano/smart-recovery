@@ -98,7 +98,11 @@ namespace SmartRecovery.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("DeclineReason");
 
                     b.HasIndex("ScheduledRetryAt");
 

@@ -1,3 +1,4 @@
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Payments.DTOs;
 using SmartRecovery.Application.Recovery.Services;
 using SmartRecovery.Domain.Entities;
@@ -27,6 +28,26 @@ public class PaymentService(
     {
         var payments = await paymentRepository.GetByCustomerAsync(customerId, cancellationToken);
         return payments.Select(ToDto).ToList();
+    }
+
+    public async Task<PagedResult<PaymentListItemDto>> GetPagedAsync(
+        int page,
+        int pageSize,
+        PaymentStatus? status,
+        DeclineReason? declineReason,
+        Guid? customerId,
+        DateTime? dateFrom,
+        DateTime? dateTo,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = new PaymentFilter(page, pageSize, status, declineReason, customerId, dateFrom, dateTo);
+        var (items, totalCount) = await paymentRepository.GetPagedAsync(filter, cancellationToken);
+
+        var dtos = items.Select(p => new PaymentListItemDto(
+            p.Id, p.CustomerId, p.Customer.Name, p.SubscriptionId, p.Amount, p.Status, p.DeclineReason,
+            p.AttemptCount, p.ScheduledRetryAt, p.CreatedAt)).ToList();
+
+        return new PagedResult<PaymentListItemDto>(dtos, page, pageSize, totalCount);
     }
 
     public async Task<IReadOnlyList<PaymentAttemptDto>> GetAttemptsAsync(Guid paymentId, CancellationToken cancellationToken = default)

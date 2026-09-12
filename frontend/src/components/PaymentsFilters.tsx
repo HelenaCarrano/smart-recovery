@@ -1,20 +1,7 @@
 import { Card } from '@/components/ui/Card'
 import { declineReasonLabel } from '@/lib/labels'
+import { DEFAULT_PAYMENTS_FILTERS, type PaymentsFiltersState } from '@/types/paymentsFilters'
 import type { DeclineReason, PaymentStatus } from '@/types/payment'
-
-export interface PaymentsFiltersState {
-  status: PaymentStatus | 'All'
-  declineReason: DeclineReason | 'All'
-  dateFrom: string
-  dateTo: string
-}
-
-export const DEFAULT_PAYMENTS_FILTERS: PaymentsFiltersState = {
-  status: 'All',
-  declineReason: 'All',
-  dateFrom: '',
-  dateTo: '',
-}
 
 const STATUS_OPTIONS: { value: PaymentStatus | 'All'; label: string }[] = [
   { value: 'All', label: 'Todos os status' },

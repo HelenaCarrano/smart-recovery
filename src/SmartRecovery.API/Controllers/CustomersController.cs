@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Customers.DTOs;
 using SmartRecovery.Application.Customers.Services;
 
@@ -9,10 +10,11 @@ namespace SmartRecovery.API.Controllers;
 [Route("api/[controller]")]
 public class CustomersController(ICustomerService customerService) : ControllerBase
 {
-    /// <summary>Lista todos os clientes cadastrados.</summary>
+    /// <summary>Lista clientes paginados; <paramref name="search"/> filtra por nome ou email.</summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<CustomerDto>>> GetAll(CancellationToken cancellationToken) =>
-        Ok(await customerService.GetAllAsync(cancellationToken));
+    public async Task<ActionResult<PagedResult<CustomerListItemDto>>> GetPaged(
+        [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search, CancellationToken cancellationToken) =>
+        Ok(await customerService.GetPagedAsync(page <= 0 ? 1 : page, pageSize <= 0 ? 20 : pageSize, search, cancellationToken));
 
     /// <summary>Busca um cliente pelo Id.</summary>
     [HttpGet("{id:guid}")]

@@ -1,5 +1,6 @@
 import { RecoveryActionBadge } from '@/components/RecoveryActionBadge'
 import { StatusBadge } from '@/components/StatusBadge'
+import { SubscriptionStatusBadge } from '@/components/SubscriptionStatusBadge'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { type DataTableColumn, DataTable } from '@/components/ui/DataTable'
@@ -18,15 +19,7 @@ import { Link, useParams } from 'react-router-dom'
 const subscriptionColumns: DataTableColumn<Subscription>[] = [
   { key: 'plan', header: 'Plano', render: (row) => <span className="font-medium text-slate-900">{row.planName}</span> },
   { key: 'price', header: 'Valor', render: (row) => formatCurrency(row.planPrice) },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (row) => (
-      <Badge tone={row.status === 'Active' ? 'approved' : row.status === 'Paused' ? 'pending' : 'neutral'}>
-        {row.status === 'Active' ? 'Ativa' : row.status === 'Paused' ? 'Pausada' : 'Cancelada'}
-      </Badge>
-    ),
-  },
+  { key: 'status', header: 'Status', render: (row) => <SubscriptionStatusBadge status={row.status} /> },
   { key: 'nextBilling', header: 'Próxima cobrança', render: (row) => formatDateTime(row.nextBillingDate) },
 ]
 
@@ -102,7 +95,7 @@ export function CustomerDetailPage() {
                     {declineReasonLabel(payment.declineReason)} · Analisado em {formatDateTime(analysis.analyzedAt)}
                   </p>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                   <ScoreIndicator score={analysis.recoveryScore} />
                   <RecoveryActionBadge action={analysis.recommendedAction} />
                 </div>

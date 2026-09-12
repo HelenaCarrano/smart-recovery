@@ -13,4 +13,14 @@ public class DashboardController(IDashboardService dashboardService) : Controlle
     [HttpGet("summary")]
     public async Task<ActionResult<DashboardSummaryDto>> GetSummary(CancellationToken cancellationToken) =>
         Ok(await dashboardService.GetSummaryAsync(cancellationToken));
+
+    /// <summary>Distribuição de pagamentos recusados por motivo.</summary>
+    [HttpGet("decline-reasons")]
+    public async Task<ActionResult<IReadOnlyList<DeclineReasonCountDto>>> GetDeclineReasons(CancellationToken cancellationToken) =>
+        Ok(await dashboardService.GetDeclineReasonBreakdownAsync(cancellationToken));
+
+    /// <summary>Aprovados x recusados por dia, nos últimos <paramref name="days"/> dias (padrão 90).</summary>
+    [HttpGet("trends")]
+    public async Task<ActionResult<IReadOnlyList<PaymentTrendPointDto>>> GetTrends([FromQuery] int days, CancellationToken cancellationToken) =>
+        Ok(await dashboardService.GetTrendAsync(days <= 0 ? 90 : days, cancellationToken));
 }

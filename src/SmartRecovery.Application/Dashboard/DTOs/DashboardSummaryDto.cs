@@ -1,6 +1,5 @@
 namespace SmartRecovery.Application.Dashboard.DTOs;
 
-/// <summary>Visão geral usada na tela principal do dashboard.</summary>
 public record DashboardSummaryDto(
     int TotalCustomers,
     int ActiveSubscriptions,
@@ -11,4 +10,5 @@ public record DashboardSummaryDto(
     int RecoveredPayments,
     double RecoveryRate,
     decimal TotalRevenue,
+    decimal RecoveredRevenue,
     int PendingRecoveryActions);

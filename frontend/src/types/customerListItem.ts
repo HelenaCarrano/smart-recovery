@@ -1,8 +1,4 @@
-/**
- * View model da tabela de Clientes. GET /api/customers não traz contagem de
- * assinaturas/pagamentos — combinamos com /api/subscriptions/by-customer e
- * /api/payments/by-customer (mesmo padrão já usado na listagem de Pagamentos).
- */
+/** Espelha CustomerListItemDto de GET /api/customers — contagens já vêm calculadas pelo backend. */
 export interface CustomerListItem {
   id: string
   name: string

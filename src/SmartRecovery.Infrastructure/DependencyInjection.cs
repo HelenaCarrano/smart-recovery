@@ -9,7 +9,6 @@ using SmartRecovery.Infrastructure.Repositories;
 
 namespace SmartRecovery.Infrastructure;
 
-/// <summary>Ponto único de registro de todos os serviços da camada de Infrastructure na DI.</summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)

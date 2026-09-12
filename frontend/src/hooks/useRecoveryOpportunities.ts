@@ -1,4 +1,4 @@
-import { getCustomers } from '@/services/customerService'
+import { getCustomerById } from '@/services/customerService'
 import { getPaymentById } from '@/services/paymentService'
 import { getPendingRecoveryAnalyses } from '@/services/recoveryService'
 import type { RecoveryOpportunity } from '@/types/recovery'
@@ -7,18 +7,18 @@ import { useAsyncData } from './useAsyncData'
 /**
  * GET /api/recovery/pending só traz o Recovery Score e a ação recomendada — não o
  * cliente, o valor ou o motivo da recusa. Não existe um endpoint único que já traga
- * tudo junto, então combinamos aqui com os dados de Payment e Customer (endpoints
- * que já existem) para montar a visão completa de cada oportunidade.
+ * tudo junto, então combinamos aqui com Payment (por id) e Customer (por id, só dos
+ * clientes realmente referenciados — GET /api/customers agora é paginado e não serve
+ * pra montar um mapa de todo mundo).
  */
 async function fetchRecoveryOpportunities(): Promise<RecoveryOpportunity[]> {
   const analyses = await getPendingRecoveryAnalyses()
   if (analyses.length === 0) return []
 
-  const [payments, customers] = await Promise.all([
-    Promise.all(analyses.map((analysis) => getPaymentById(analysis.paymentId))),
-    getCustomers(),
-  ])
+  const payments = await Promise.all(analyses.map((analysis) => getPaymentById(analysis.paymentId)))
 
+  const uniqueCustomerIds = [...new Set(payments.map((payment) => payment.customerId))]
+  const customers = await Promise.all(uniqueCustomerIds.map((id) => getCustomerById(id)))
   const customerById = new Map(customers.map((customer) => [customer.id, customer]))
 
   return analyses.map((analysis, index) => {

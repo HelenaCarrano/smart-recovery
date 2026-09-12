@@ -4,10 +4,6 @@ using SmartRecovery.Domain.Interfaces;
 
 namespace SmartRecovery.Infrastructure.Data;
 
-/// <summary>
-/// Contexto do EF Core para o Smart Recovery. Centraliza os DbSets e aplica
-/// todas as configurações de mapeamento encontradas em Data/Configurations.
-/// </summary>
 public class SmartRecoveryDbContext(DbContextOptions<SmartRecoveryDbContext> options)
     : DbContext(options), IUnitOfWork
 {
@@ -31,7 +27,6 @@ public class SmartRecoveryDbContext(DbContextOptions<SmartRecoveryDbContext> opt
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>Mantém UpdatedAt sincronizado sempre que uma entidade rastreada é modificada.</summary>
     private void UpdateAuditFields()
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())

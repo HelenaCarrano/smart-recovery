@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Payments.DTOs;
 using SmartRecovery.Application.Payments.Services;
+using SmartRecovery.Domain.Enums;
 
 namespace SmartRecovery.API.Controllers;
 
@@ -9,6 +11,20 @@ namespace SmartRecovery.API.Controllers;
 [Route("api/[controller]")]
 public class PaymentsController(IPaymentService paymentService) : ControllerBase
 {
+    /// <summary>Lista pagamentos paginados, com filtros opcionais por status, motivo da recusa, cliente e período.</summary>
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<PaymentListItemDto>>> GetPaged(
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        [FromQuery] PaymentStatus? status,
+        [FromQuery] DeclineReason? declineReason,
+        [FromQuery] Guid? customerId,
+        [FromQuery] DateTime? dateFrom,
+        [FromQuery] DateTime? dateTo,
+        CancellationToken cancellationToken) =>
+        Ok(await paymentService.GetPagedAsync(
+            page <= 0 ? 1 : page, pageSize <= 0 ? 25 : pageSize, status, declineReason, customerId, dateFrom, dateTo, cancellationToken));
+
     /// <summary>Busca uma cobrança pelo Id.</summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id, CancellationToken cancellationToken) =>

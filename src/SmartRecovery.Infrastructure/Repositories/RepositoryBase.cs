@@ -5,7 +5,6 @@ using SmartRecovery.Infrastructure.Data;
 
 namespace SmartRecovery.Infrastructure.Repositories;
 
-/// <summary>Implementação genérica compartilhada por todos os repositórios concretos.</summary>
 public abstract class RepositoryBase<T>(SmartRecoveryDbContext context) : IRepository<T>
     where T : BaseEntity
 {
@@ -17,6 +16,9 @@ public abstract class RepositoryBase<T>(SmartRecoveryDbContext context) : IRepos
 
     public virtual async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await DbSet.ToListAsync(cancellationToken);
+
+    public virtual Task<int> CountAsync(CancellationToken cancellationToken = default) =>
+        DbSet.CountAsync(cancellationToken);
 
     public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default) =>
         await DbSet.AddAsync(entity, cancellationToken);
