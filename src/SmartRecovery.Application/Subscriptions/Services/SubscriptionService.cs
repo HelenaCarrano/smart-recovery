@@ -1,3 +1,4 @@
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Subscriptions.DTOs;
 using SmartRecovery.Domain.BusinessRules;
 using SmartRecovery.Domain.Entities;
@@ -25,6 +26,17 @@ public class SubscriptionService(
     {
         var subscriptions = await subscriptionRepository.GetByCustomerAsync(customerId, cancellationToken);
         return subscriptions.Select(ToDto).ToList();
+    }
+
+    public async Task<PagedResult<SubscriptionListItemDto>> GetPagedAsync(int page, int pageSize, SubscriptionStatus? status, CancellationToken cancellationToken = default)
+    {
+        var (subscriptions, totalCount) = await subscriptionRepository.GetPagedAsync(page, pageSize, status, cancellationToken);
+
+        var items = subscriptions.Select(s => new SubscriptionListItemDto(
+            s.Id, s.CustomerId, s.Customer.Name, s.PlanId, s.Plan.Name, s.Plan.Price, s.Plan.Periodicity,
+            s.StartDate, s.NextBillingDate, s.EndDate, s.Status)).ToList();
+
+        return new PagedResult<SubscriptionListItemDto>(items, page, pageSize, totalCount);
     }
 
     public async Task<SubscriptionDto> CreateAsync(CreateSubscriptionDto dto, CancellationToken cancellationToken = default)

@@ -6,11 +6,7 @@ namespace SmartRecovery.API.Extensions;
 
 public static class WebApplicationExtensions
 {
-    /// <summary>
-    /// Aplica migrations pendentes e popula dados de demonstração na inicialização.
-    /// Convém para um projeto de portfólio; em produção o ideal seria rodar migrations
-    /// como um passo separado do pipeline de deploy.
-    /// </summary>
+    /// <summary>Roda migrations e seed no startup — conveniente para portfólio; em produção seria um passo separado do deploy.</summary>
     public static async Task MigrateAndSeedDatabaseAsync(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Subscriptions.DTOs;
 using SmartRecovery.Application.Subscriptions.Services;
+using SmartRecovery.Domain.Enums;
 
 namespace SmartRecovery.API.Controllers;
 
@@ -9,6 +11,12 @@ namespace SmartRecovery.API.Controllers;
 [Route("api/[controller]")]
 public class SubscriptionsController(ISubscriptionService subscriptionService) : ControllerBase
 {
+    /// <summary>Lista assinaturas paginadas, com filtro opcional por status.</summary>
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<SubscriptionListItemDto>>> GetPaged(
+        [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] SubscriptionStatus? status, CancellationToken cancellationToken) =>
+        Ok(await subscriptionService.GetPagedAsync(page <= 0 ? 1 : page, pageSize <= 0 ? 25 : pageSize, status, cancellationToken));
+
     /// <summary>Busca uma assinatura pelo Id.</summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SubscriptionDto>> GetById(Guid id, CancellationToken cancellationToken) =>

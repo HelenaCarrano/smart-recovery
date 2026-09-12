@@ -1,3 +1,4 @@
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Payments.DTOs;
 using SmartRecovery.Domain.Enums;
 
@@ -7,6 +8,17 @@ public interface IPaymentService
 {
     Task<PaymentDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PaymentDto>> GetByCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    Task<PagedResult<PaymentListItemDto>> GetPagedAsync(
+        int page,
+        int pageSize,
+        PaymentStatus? status,
+        DeclineReason? declineReason,
+        Guid? customerId,
+        DateTime? dateFrom,
+        DateTime? dateTo,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PaymentAttemptDto>> GetAttemptsAsync(Guid paymentId, CancellationToken cancellationToken = default);
 
     /// <summary>Cria uma cobrança Pending para uma assinatura, copiando o valor do plano vigente.</summary>

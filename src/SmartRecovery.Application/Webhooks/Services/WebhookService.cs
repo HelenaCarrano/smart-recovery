@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using SmartRecovery.Application.Payments.Services;
 using SmartRecovery.Application.Webhooks.DTOs;
 using SmartRecovery.Domain.Entities;
@@ -11,7 +12,8 @@ namespace SmartRecovery.Application.Webhooks.Services;
 public class WebhookService(
     IWebhookEventRepository webhookEventRepository,
     IPaymentService paymentService,
-    IUnitOfWork unitOfWork) : IWebhookService
+    IUnitOfWork unitOfWork,
+    ILogger<WebhookService> logger) : IWebhookService
 {
     public async Task<WebhookEventDto> ProcessPaymentWebhookAsync(WebhookPayloadDto payload, CancellationToken cancellationToken = default)
     {
@@ -38,6 +40,11 @@ public class WebhookService(
         }
         catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException)
         {
+            // Não relançamos: o evento fica registrado como Failed para auditoria/reprocessamento,
+            // mas o log é o que garante que a falha não passe despercebida em produção.
+            logger.LogWarning(ex, "Failed to apply webhook {IdempotencyKey} (payment {PaymentId}): {Reason}",
+                payload.IdempotencyKey, payload.PaymentId, ex.Message);
+
             webhookEvent.Status = WebhookEventStatus.Failed;
             webhookEvent.ErrorMessage = ex.Message;
         }

@@ -12,32 +12,43 @@ public class DashboardService(
 {
     public async Task<DashboardSummaryDto> GetSummaryAsync(CancellationToken cancellationToken = default)
     {
-        var customers = await customerRepository.GetAllAsync(cancellationToken);
-        var activeSubscriptions = await subscriptionRepository.GetByStatusAsync(SubscriptionStatus.Active, cancellationToken);
-        var payments = await paymentRepository.GetAllAsync(cancellationToken);
-        var pendingRecoveryActions = await recoveryAnalysisRepository.GetPendingExecutionAsync(cancellationToken);
+        var totalCustomers = await customerRepository.CountAsync(cancellationToken);
+        var activeSubscriptions = await subscriptionRepository.CountByStatusAsync(SubscriptionStatus.Active, cancellationToken);
+        var totalPayments = await paymentRepository.CountAllAsync(cancellationToken);
+        var approved = await paymentRepository.CountByStatusAsync(PaymentStatus.Approved, cancellationToken);
+        var declined = await paymentRepository.CountByStatusAsync(PaymentStatus.Declined, cancellationToken);
+        var pending = await paymentRepository.CountByStatusAsync(PaymentStatus.Pending, cancellationToken);
+        var everDeclined = await paymentRepository.CountEverDeclinedAsync(cancellationToken);
+        var (recoveredCount, recoveredRevenue) = await paymentRepository.GetRecoveredStatsAsync(cancellationToken);
+        var totalRevenue = await paymentRepository.GetApprovedRevenueAsync(cancellationToken);
+        var pendingRecoveryActions = await recoveryAnalysisRepository.CountPendingExecutionAsync(cancellationToken);
 
-        var approved = payments.Count(p => p.Status == PaymentStatus.Approved);
-        var declined = payments.Count(p => p.Status == PaymentStatus.Declined);
-        var pending = payments.Count(p => p.Status == PaymentStatus.Pending);
-
-        // Um pagamento aprovado que precisou de mais de uma tentativa foi, por definição, recuperado.
-        var recovered = payments.Count(p => p.Status == PaymentStatus.Approved && p.AttemptCount > 1);
-        var everDeclined = payments.Count(p => p.Status == PaymentStatus.Declined || p.AttemptCount > 1);
-        var recoveryRate = everDeclined > 0 ? recovered / (double)everDeclined : 0;
-
-        var totalRevenue = payments.Where(p => p.Status == PaymentStatus.Approved).Sum(p => p.Amount);
+        var recoveryRate = everDeclined > 0 ? recoveredCount / (double)everDeclined : 0;
 
         return new DashboardSummaryDto(
-            customers.Count,
-            activeSubscriptions.Count,
-            payments.Count,
+            totalCustomers,
+            activeSubscriptions,
+            totalPayments,
             approved,
             declined,
             pending,
-            recovered,
+            recoveredCount,
             recoveryRate,
             totalRevenue,
-            pendingRecoveryActions.Count);
+            recoveredRevenue,
+            pendingRecoveryActions);
+    }
+
+    public async Task<IReadOnlyList<DeclineReasonCountDto>> GetDeclineReasonBreakdownAsync(CancellationToken cancellationToken = default)
+    {
+        var counts = await paymentRepository.GetDeclineReasonCountsAsync(cancellationToken);
+        return counts.Select(c => new DeclineReasonCountDto(c.DeclineReason, c.Count)).ToList();
+    }
+
+    public async Task<IReadOnlyList<PaymentTrendPointDto>> GetTrendAsync(int days, CancellationToken cancellationToken = default)
+    {
+        var since = DateTime.UtcNow.Date.AddDays(-Math.Max(days, 1));
+        var points = await paymentRepository.GetTrendAsync(since, cancellationToken);
+        return points.Select(p => new PaymentTrendPointDto(p.Date, p.Approved, p.Declined)).ToList();
     }
 }

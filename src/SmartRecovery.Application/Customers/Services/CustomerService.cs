@@ -1,3 +1,4 @@
+using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Customers.DTOs;
 using SmartRecovery.Domain.Entities;
 using SmartRecovery.Domain.Interfaces;
@@ -5,12 +6,29 @@ using SmartRecovery.Domain.Interfaces.Repositories;
 
 namespace SmartRecovery.Application.Customers.Services;
 
-public class CustomerService(ICustomerRepository customerRepository, IUnitOfWork unitOfWork) : ICustomerService
+public class CustomerService(
+    ICustomerRepository customerRepository,
+    ISubscriptionRepository subscriptionRepository,
+    IPaymentRepository paymentRepository,
+    IUnitOfWork unitOfWork) : ICustomerService
 {
-    public async Task<IReadOnlyList<CustomerDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResult<CustomerListItemDto>> GetPagedAsync(int page, int pageSize, string? search, CancellationToken cancellationToken = default)
     {
-        var customers = await customerRepository.GetAllAsync(cancellationToken);
-        return customers.Select(ToDto).ToList();
+        var (customers, totalCount) = await customerRepository.GetPagedAsync(page, pageSize, search, cancellationToken);
+        var customerIds = customers.Select(c => c.Id).ToList();
+
+        var subscriptionCounts = await subscriptionRepository.CountByCustomerIdsAsync(customerIds, cancellationToken);
+        var paymentCounts = await paymentRepository.CountByCustomerIdsAsync(customerIds, cancellationToken);
+
+        var items = customers.Select(c => new CustomerListItemDto(
+            c.Id,
+            c.Name,
+            c.Email,
+            c.IsActive,
+            subscriptionCounts.GetValueOrDefault(c.Id),
+            paymentCounts.GetValueOrDefault(c.Id))).ToList();
+
+        return new PagedResult<CustomerListItemDto>(items, page, pageSize, totalCount);
     }
 
     public async Task<CustomerDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

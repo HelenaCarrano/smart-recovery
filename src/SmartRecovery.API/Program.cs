@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using SmartRecovery.API.Extensions;
 using SmartRecovery.API.Middlewares;
 using SmartRecovery.Application;
@@ -7,20 +8,22 @@ using SmartRecovery.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Camadas da aplicação ─────────────────────────────────────────────────────
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// ── Controllers ───────────────────────────────────────────────────────────────
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Serializa enums como strings (ex: "APPROVED" em vez de 0)
-        // Facilita muito a leitura da API e do Swagger
+        // Enums como strings ("Approved") em vez de números — muito mais legível no Swagger.
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-// ── Swagger / OpenAPI ─────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -44,33 +47,29 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Inclui os comentários XML dos controllers no Swagger
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath);
 });
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
-// Permite que o frontend React (em desenvolvimento) acesse a API
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173") // porta padrão do Vite
+            .WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
-// ── Build ─────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Middlewares ───────────────────────────────────────────────────────────────
-// Ordem importa: o ExceptionHandlingMiddleware deve vir antes dos demais
-// para capturar erros que acontecerem em qualquer parte do pipeline
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
+
+// Precisa vir antes de tudo para capturar erros de qualquer parte do pipeline.
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -78,7 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Recovery API v1");
-        options.RoutePrefix = string.Empty; // Swagger na raiz: http://localhost:5000
+        options.RoutePrefix = string.Empty;
         options.DocumentTitle = "Smart Recovery API";
     });
 }

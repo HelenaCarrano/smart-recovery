@@ -1,5 +1,18 @@
 import { api } from './api'
-import type { Subscription } from '@/types/subscription'
+import type { PagedResult } from '@/types/pagedResult'
+import type { Subscription, SubscriptionStatus } from '@/types/subscription'
+import type { SubscriptionListItem } from '@/types/subscriptionListItem'
+
+export interface SubscriptionQueryParams {
+  page: number
+  pageSize: number
+  status?: SubscriptionStatus
+}
+
+export async function getSubscriptions(params: SubscriptionQueryParams): Promise<PagedResult<SubscriptionListItem>> {
+  const { data } = await api.get<PagedResult<SubscriptionListItem>>('/api/subscriptions', { params })
+  return data
+}
 
 export async function getSubscriptionById(id: string): Promise<Subscription> {
   const { data } = await api.get<Subscription>(`/api/subscriptions/${id}`)

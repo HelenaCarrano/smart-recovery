@@ -9,6 +9,9 @@ import { recoveryActionLabel } from '@/lib/labels'
 import type { RecoveryOpportunity } from '@/types/recovery'
 import { useMemo, useState } from 'react'
 
+/** Referência estável para quando ainda não há dados — evita recriar [] a cada render e invalidar os useMemo abaixo. */
+const EMPTY_OPPORTUNITIES: RecoveryOpportunity[] = []
+
 function sortOpportunities(opportunities: RecoveryOpportunity[], sortBy: RecoverySortOption): RecoveryOpportunity[] {
   const sorted = [...opportunities]
 
@@ -30,7 +33,7 @@ export function RecoveryPage() {
   const state = useRecoveryOpportunities()
   const [sortBy, setSortBy] = useState<RecoverySortOption>('amount')
 
-  const opportunities = state.status === 'success' ? state.data : []
+  const opportunities = state.status === 'success' ? state.data : EMPTY_OPPORTUNITIES
 
   // Destaque de maior impacto financeiro é sempre pelo valor, independente da ordenação escolhida.
   const highestValueId = useMemo(() => {

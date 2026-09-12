@@ -9,7 +9,6 @@ using SmartRecovery.Application.Webhooks.Services;
 
 namespace SmartRecovery.Application;
 
-/// <summary>Ponto único de registro de todos os serviços da camada de Application na DI.</summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)

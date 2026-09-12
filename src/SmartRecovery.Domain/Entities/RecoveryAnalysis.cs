@@ -3,35 +3,17 @@ using SmartRecovery.Domain.Enums;
 namespace SmartRecovery.Domain.Entities;
 
 /// <summary>
-/// Armazena o resultado da análise de recuperação para um pagamento recusado.
-/// É criada automaticamente quando um Payment muda para Status = Declined.
-///
-/// Contém:
-/// - O Recovery Score calculado (0–100)
-/// - A ação recomendada pelo motor de decisão
-/// - Os dados de contexto usados no cálculo (para auditoria e futura entrada de ML)
+/// Criada automaticamente quando um Payment é recusado. TotalPayments..RecentAttempts são as
+/// features usadas pelo RecoveryScoreCalculator; BaseScore..RecentAttemptsAdjustment são a
+/// contribuição de cada fator (ver RecoveryScoreBreakdown) — já somam para RecoveryScore.
 /// </summary>
 public class RecoveryAnalysis : BaseEntity
 {
     public Guid PaymentId { get; set; }
-
-    /// <summary>
-    /// Pontuação de recuperabilidade calculada pelo RecoveryScoreCalculator.
-    /// Varia de 0 (sem chance) a 100 (alta probabilidade de recuperação).
-    /// </summary>
     public int RecoveryScore { get; set; }
-
-    /// <summary>Ação determinada pelo RecoveryDecisionEngine com base no score.</summary>
     public RecoveryAction RecommendedAction { get; set; }
-
     public DateTime AnalyzedAt { get; set; } = DateTime.UtcNow;
-
-    /// <summary>Data em que a ação recomendada foi efetivamente executada. Null se ainda pendente.</summary>
     public DateTime? ExecutedAt { get; set; }
-
-    // ── Dados de contexto usados no cálculo ───────────────────────────────────
-    // Armazenados aqui para auditoria e para futura substituição por modelo de ML.
-    // Um modelo preditivo precisará desses dados como features de entrada.
 
     public int TotalPayments { get; set; }
     public int SuccessfulPayments { get; set; }
@@ -39,18 +21,11 @@ public class RecoveryAnalysis : BaseEntity
     public int RecentDeclines { get; set; }
     public int RecentAttempts { get; set; }
 
-    // ── Detalhamento do score por fator ──────────────────────────────────────
-    // Espelha SmartRecovery.Domain.BusinessRules.RecoveryScoreBreakdown, persistido
-    // no momento da análise para que a API explique a composição do score sem que
-    // nenhum consumidor (frontend, relatórios) precise reimplementar a fórmula.
-    // Já vêm com o sinal correto: RecoveryScore = soma de todos, clampada em [0, 100].
-
     public int BaseScore { get; set; }
     public int HistoryAdjustment { get; set; }
     public int RecoveryTrackRecordBonus { get; set; }
     public int RecentDeclinesAdjustment { get; set; }
     public int RecentAttemptsAdjustment { get; set; }
 
-    // ── Navegação ─────────────────────────────────────────────────────────────
     public Payment Payment { get; set; } = null!;
 }

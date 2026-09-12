@@ -1,6 +1,23 @@
 import { api } from './api'
-import type { Payment } from '@/types/payment'
+import type { DeclineReason, Payment, PaymentStatus } from '@/types/payment'
 import type { PaymentAttempt } from '@/types/paymentAttempt'
+import type { PagedResult } from '@/types/pagedResult'
+import type { PaymentListItem } from '@/types/paymentListItem'
+
+export interface PaymentQueryParams {
+  page: number
+  pageSize: number
+  status?: PaymentStatus
+  declineReason?: DeclineReason
+  customerId?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
+export async function getPayments(params: PaymentQueryParams): Promise<PagedResult<PaymentListItem>> {
+  const { data } = await api.get<PagedResult<PaymentListItem>>('/api/payments', { params })
+  return data
+}
 
 export async function getPaymentById(id: string): Promise<Payment> {
   const { data } = await api.get<Payment>(`/api/payments/${id}`)

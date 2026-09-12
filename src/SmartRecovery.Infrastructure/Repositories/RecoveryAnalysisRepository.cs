@@ -16,4 +16,7 @@ public class RecoveryAnalysisRepository(SmartRecoveryDbContext context)
             .Include(r => r.Payment)
             .Where(r => r.ExecutedAt == null)
             .ToListAsync(cancellationToken);
+
+    public Task<int> CountPendingExecutionAsync(CancellationToken cancellationToken = default) =>
+        DbSet.CountAsync(r => r.ExecutedAt == null, cancellationToken);
 }

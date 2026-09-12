@@ -40,11 +40,11 @@ export function DashboardSummarySection({ state }: DashboardSummarySectionProps)
           icon={AlertIcon}
         />
         <KpiCard
-          label="Pagamentos recuperados"
-          value={String(summary.recoveredPayments)}
+          label="Receita recuperada"
+          value={formatCurrency(summary.recoveredRevenue)}
           tone="approved"
           icon={CheckCircleIcon}
-          caption="Receita recuperada em R$ ainda não é exposta pela API."
+          caption={`${summary.recoveredPayments} pagamento(s) recuperado(s) após mais de uma tentativa.`}
         />
       </div>
 

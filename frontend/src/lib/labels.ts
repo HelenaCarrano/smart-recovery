@@ -1,5 +1,6 @@
 import type { BadgeTone } from '@/components/ui/Badge'
 import type { DeclineReason } from '@/types/payment'
+import type { PlanPeriodicity } from '@/types/plan'
 import type { RecoveryAction } from '@/types/recovery'
 
 const DECLINE_REASON_LABELS: Record<DeclineReason, string> = {
@@ -27,4 +28,14 @@ export const RECOVERY_ACTION_CONFIG: Record<RecoveryAction, { label: string; ton
 
 export function recoveryActionLabel(action: RecoveryAction): string {
   return RECOVERY_ACTION_CONFIG[action].label
+}
+
+const PERIODICITY_LABELS: Record<PlanPeriodicity, string> = {
+  Monthly: 'Mensal',
+  Quarterly: 'Trimestral',
+  Annual: 'Anual',
+}
+
+export function periodicityLabel(periodicity: PlanPeriodicity): string {
+  return PERIODICITY_LABELS[periodicity] ?? periodicity
 }
