@@ -9,15 +9,17 @@ import { clsx } from 'clsx'
 interface RecoveryOpportunityItemProps {
   opportunity: RecoveryOpportunity
   highlight?: boolean
+  onClick?: () => void
 }
 
-export function RecoveryOpportunityItem({ opportunity, highlight = false }: RecoveryOpportunityItemProps) {
+export function RecoveryOpportunityItem({ opportunity, highlight = false, onClick }: RecoveryOpportunityItemProps) {
   return (
     <Card
       className={clsx(
         'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between',
         highlight && 'border-brand-300 ring-1 ring-brand-100',
       )}
+      onClick={onClick}
     >
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -39,7 +41,7 @@ export function RecoveryOpportunityItem({ opportunity, highlight = false }: Reco
       </div>
 
       <div className="flex shrink-0 flex-wrap items-center gap-6">
-        <div className="text-right">
+        <div className="flex items-baseline gap-1.5 whitespace-nowrap">
           <p className="text-xs text-slate-400">Valor em risco</p>
           <p className="font-semibold text-slate-900">{formatCurrency(opportunity.amount)}</p>
         </div>

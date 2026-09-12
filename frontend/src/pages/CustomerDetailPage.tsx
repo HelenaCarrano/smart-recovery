@@ -32,7 +32,7 @@ const subscriptionColumns: DataTableColumn<Subscription>[] = [
 function buildPaymentColumns(recoveryByPaymentId: Map<string, RecoveryAnalysis>): DataTableColumn<Payment>[] {
   return [
     { key: 'amount', header: 'Valor', render: (row) => formatCurrency(row.amount) },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} attemptCount={row.attemptCount} /> },
     { key: 'declineReason', header: 'Motivo da recusa', render: (row) => declineReasonLabel(row.declineReason) },
     { key: 'date', header: 'Data', render: (row) => formatDateTime(row.createdAt) },
     {
@@ -80,6 +80,7 @@ export function CustomerDetailPage() {
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           <Field label="Nome" value={customer.name} />
           <Field label="Email" value={customer.email} />
+          <Field label="Telefone" value={customer.phone} />
           <Field label="Documento" value={customer.document} />
           <Field
             label="Status"

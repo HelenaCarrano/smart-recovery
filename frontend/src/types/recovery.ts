@@ -5,6 +5,7 @@ export type RecoveryAction =
   | 'RetryIn24Hours'
   | 'RetryIn72Hours'
   | 'RequestPaymentMethodUpdate'
+  | 'SendPaymentReminderEmail'
   | 'CancelSubscription'
   | 'ManualReview'
 

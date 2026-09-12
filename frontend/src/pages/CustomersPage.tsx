@@ -15,6 +15,7 @@ const PAGE_SIZE = 20
 const columns: DataTableColumn<CustomerListItem>[] = [
   { key: 'name', header: 'Nome', render: (row) => <span className="font-medium text-slate-900">{row.name}</span> },
   { key: 'email', header: 'Email', render: (row) => row.email },
+  { key: 'phone', header: 'Telefone', render: (row) => row.phone },
   { key: 'subscriptions', header: 'Assinaturas', render: (row) => row.subscriptionsCount },
   { key: 'payments', header: 'Pagamentos', render: (row) => row.paymentsCount },
   {

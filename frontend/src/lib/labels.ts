@@ -9,6 +9,10 @@ const DECLINE_REASON_LABELS: Record<DeclineReason, string> = {
   InvalidCard: 'Cartão inválido',
   TemporaryError: 'Erro temporário',
   BlockedCard: 'Cartão bloqueado',
+  SuspectedFraud: 'Suspeita de fraude',
+  CardLimitExceeded: 'Limite do cartão excedido',
+  SecurityCodeInvalid: 'Código de segurança inválido',
+  IssuerUnavailable: 'Banco emissor indisponível',
   Unknown: 'Motivo desconhecido',
 }
 
@@ -22,6 +26,7 @@ export const RECOVERY_ACTION_CONFIG: Record<RecoveryAction, { label: string; ton
   RetryIn24Hours: { label: 'Retentar em 24h', tone: 'pending' },
   RetryIn72Hours: { label: 'Retentar em 72h', tone: 'pending' },
   RequestPaymentMethodUpdate: { label: 'Atualizar forma de pagamento', tone: 'attention' },
+  SendPaymentReminderEmail: { label: 'Enviar e-mail de regularização', tone: 'attention' },
   CancelSubscription: { label: 'Cancelar assinatura', tone: 'declined' },
   ManualReview: { label: 'Revisão manual', tone: 'attention' },
 }

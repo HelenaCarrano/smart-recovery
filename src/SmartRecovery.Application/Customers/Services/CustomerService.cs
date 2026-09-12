@@ -24,6 +24,7 @@ public class CustomerService(
             c.Id,
             c.Name,
             c.Email,
+            c.Phone,
             c.IsActive,
             subscriptionCounts.GetValueOrDefault(c.Id),
             paymentCounts.GetValueOrDefault(c.Id))).ToList();
@@ -48,6 +49,7 @@ public class CustomerService(
         {
             Name = dto.Name,
             Email = dto.Email,
+            Phone = dto.Phone,
             Document = dto.Document
         };
 
@@ -67,5 +69,5 @@ public class CustomerService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    private static CustomerDto ToDto(Customer c) => new(c.Id, c.Name, c.Email, c.Document, c.IsActive, c.CreatedAt);
+    private static CustomerDto ToDto(Customer c) => new(c.Id, c.Name, c.Email, c.Phone, c.Document, c.IsActive, c.CreatedAt);
 }

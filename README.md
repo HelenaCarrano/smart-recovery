@@ -1,16 +1,28 @@
 # Smart Recovery
 
-Projeto de portfólio em C# / .NET 8 (Clean Architecture) + React/TypeScript, para praticar um domínio
-não trivial: recuperação de pagamentos recorrentes recusados.
+Smart Recovery é uma plataforma de recuperação de pagamentos recorrentes recusados. O sistema analisa
+o histórico de cobranças do cliente, calcula um score de recuperabilidade e recomenda automaticamente
+a estratégia de recuperação mais adequada (retry, atualização de forma de pagamento, revisão manual ou
+cancelamento da assinatura).
 
-O sistema simula o ciclo de cobrança de uma assinatura — quando um pagamento é recusado, calcula um
-**Recovery Score** explicável (0–100) a partir do histórico do cliente e do motivo da recusa, e
-recomenda uma ação (retry, pedir atualização de forma de pagamento, revisão manual ou cancelamento da
-assinatura).
+**Stack:** C# · .NET 8 · PostgreSQL · Entity Framework Core · React · TypeScript
 
-![Dashboard do Smart Recovery](docs/screenshots/dashboard.png)
+- 🔗 **Demo:** [smart-recovery-8b538.web.app](https://smart-recovery-8b538.web.app)
+- ⚙️ **API:** [smart-recovery-api.onrender.com](https://smart-recovery-api.onrender.com) (Swagger em `/`)
 
-Dados simulados, sem gateway de pagamento real e sem autenticação — ver [Limitações conhecidas](#limitações-conhecidas).
+Dados simulados e sem gateway de pagamento real — ver [Limitações conhecidas](#limitações-conhecidas).
+
+## Objetivo
+
+O projeto foi desenvolvido para demonstrar conceitos de backend que vão além de operações CRUD:
+
+- modelagem de regras de negócio explícitas e testáveis;
+- Clean Architecture, com o Domain isolado de infraestrutura;
+- processamento assíncrono com background workers;
+- integração com banco relacional (EF Core + PostgreSQL);
+- idempotência de webhooks;
+- testes unitários e de integração;
+- decisões automatizadas e explicáveis (o Recovery Score nunca é uma caixa-preta).
 
 ## Arquitetura
 
@@ -60,12 +72,14 @@ PaymentGatewaySimulator processa a cobrança (75% aprovação / 25% recusa)
       ↓
 RecoveryService.AnalyzeAsync (RecoveryScoreCalculator + RecoveryDecisionEngine)
       ↓
-Ação recomendada: RetryIn2/24/72Hours | RequestPaymentMethodUpdate | ManualReview | CancelSubscription
+Ação recomendada: RetryIn2/24/72Hours | RequestPaymentMethodUpdate | SendPaymentReminderEmail |
+                  ManualReview | CancelSubscription
       ↓
 Retry agendado?  → PaymentRetryWorker retenta automaticamente na data marcada
 ```
 
-O mesmo pipeline roda em produção, no seed de dados e nos testes de integração — não há um "modo demo" com lógica separada.
+O mesmo pipeline de negócio é utilizado pela API, pelo seed e pelos testes de integração, sem uma
+implementação de regras exclusiva para demonstração.
 
 ## Recovery Score
 
@@ -79,7 +93,21 @@ O mesmo pipeline roda em produção, no seed de dados e nos testes de integraç�
 | Ajuste de recusas recentes | Recusas nos últimos 30 dias |
 | Ajuste de tentativas recentes | Volume de tentativas recentes (fadiga de retry) |
 
-`RecoveryDecisionEngine.Decide(score, motivo)` traduz o score final em uma ação. A API expõe o breakdown completo (`GET /api/recovery/payments/{id}`) — o frontend só renderiza os números que o backend calculou.
+`RecoveryDecisionEngine.Decide(score, motivo, tentativas)` traduz o score final em uma ação, seguindo esta tabela (`SmartRecovery.Domain/BusinessRules/RecoveryDecisionEngine.cs`):
+
+| Score | Ação |
+|---|---|
+| 80–100 | Retry em 2h (erro temporário / emissor indisponível) ou em 24h (demais motivos) |
+| 50–79 | Retry em 72h |
+| 30–49 | Solicitar atualização da forma de pagamento |
+| 0–29 | Cancelar assinatura |
+
+Duas exceções têm prioridade sobre a tabela de score: **cartão bloqueado ou suspeita de fraude** vão
+sempre para revisão manual, independente do score. E, na **3ª tentativa consecutiva**, se o score
+estiver abaixo de 80, o sistema interrompe novos retries automáticos e envia um e-mail de regularização
+ao cliente em vez de continuar retentando às cegas.
+
+A API expõe o breakdown completo (`GET /api/recovery/payments/{id}`) — o frontend só renderiza os números que o backend calculou.
 
 ## API
 
@@ -95,7 +123,9 @@ Principais endpoints (Swagger disponível em `/` ao rodar em Development):
 | GET | `/api/subscriptions` | Lista paginada filtrável por status |
 | GET | `/api/recovery/payments/{id}` | Análise de recuperação de um pagamento |
 | GET | `/api/recovery/pending` | Ações de recuperação ainda não executadas |
-| GET | `/api/dashboard/summary` \| `/decline-reasons` \| `/trends` | Agregados do Dashboard |
+| GET | `/api/dashboard/summary` | KPIs do Dashboard |
+| GET | `/api/dashboard/decline-reasons` | Distribuição dos motivos de recusa |
+| GET | `/api/dashboard/trends` | Tendência diária de pagamentos |
 | POST | `/api/webhooks/payments` | Recebe resultado de cobrança externa (idempotente) |
 
 Erros seguem `ProblemDetails` (RFC 7807) em toda a API.
@@ -103,16 +133,15 @@ Erros seguem `ProblemDetails` (RFC 7807) em toda a API.
 ## Banco de dados
 
 PostgreSQL, sem dados fabricados à mão: o seed (`SmartRecoveryDataSeeder`) simula ~9 meses de cobrança
-reaproveitando o mesmo pipeline de produção (`BillingCycleCalculator`, `RecoveryScoreCalculator`,
-`RecoveryDecisionEngine`), com uma seed fixa (`Random(42)`) para o resultado ser reprodutível.
-
-Volume atual: 80 clientes, 104 assinaturas ativas, 313 pagamentos, 33 recusados, 51 recuperados após
-mais de uma tentativa (recovery rate 60,7%), todos os 6 `DeclineReason` e as 6 `RecoveryAction`
-representados no histórico de tentativas/análises.
+para 80 clientes, reaproveitando o mesmo pipeline de produção (`BillingCycleCalculator`,
+`RecoveryScoreCalculator`, `RecoveryDecisionEngine`), com uma seed fixa (`Random(42)`) para o resultado
+ser reprodutível. Os motivos de recusa seguem uma distribuição realista (`DeclineReasonSimulator`) —
+`InsufficientFunds`/`ExpiredCard` dominam, `SuspectedFraud` é raro — em vez de uniforme entre os 10
+valores de `DeclineReason`, e todas as 7 `RecoveryAction` aparecem no histórico de análises.
 
 ## Testes
 
-- **26 testes unitários** (`tests/SmartRecovery.Tests/Domain`, `/Application`) cobrindo as regras de negócio isoladamente (Moq nos repositórios).
+- **58 testes unitários** (`tests/SmartRecovery.Tests/Domain`, `/Application`) cobrindo as regras de negócio e todos os Services de Application isoladamente (Moq nos repositórios).
 - **9 testes de integração** (`tests/SmartRecovery.Tests/Integration`) rodando HTTP → Controller → Application → EF Core → PostgreSQL de verdade, contra um banco separado (`smart_recovery_test`, criado e migrado automaticamente): criar pagamento, processar pagamento (aprovado/recusado, com verificação de que a análise de recuperação é gerada), consultar recuperação, webhook válido, duplicado (idempotência) e inválido (validação).
 
 ```bash
@@ -124,9 +153,9 @@ dotnet test
 Requer PostgreSQL rodando localmente (este projeto foi desenvolvido sem Docker).
 
 ```bash
-# 1. Criar o banco e o usuário (uma vez)
-psql -U postgres -c "CREATE USER admin WITH PASSWORD 'admin123' SUPERUSER;"
-psql -U postgres -c "CREATE DATABASE smart_recovery OWNER admin;"
+# 1. Criar o banco e o usuário (uma vez) — dono só do próprio banco, sem SUPERUSER
+psql -U postgres -c "CREATE USER smart_recovery WITH PASSWORD 'smart_recovery';"
+psql -U postgres -c "CREATE DATABASE smart_recovery OWNER smart_recovery;"
 
 # 2. Backend — aplica migrations e popula o seed automaticamente no primeiro start
 dotnet run --project src/SmartRecovery.API
@@ -137,32 +166,14 @@ npm install
 npm run dev
 ```
 
+As credenciais acima são exclusivamente para desenvolvimento local e não devem ser utilizadas em
+ambientes reais. Essa connection string é a usada em desenvolvimento (`appsettings.Development.json`);
+em produção ela vem de variável de ambiente (`ConnectionStrings__DefaultConnection` ou `DATABASE_URL`),
+nunca hardcoded.
+
 API em `http://localhost:5000` (Swagger em `/`), frontend em `http://localhost:5173`.
-
-## Screenshots
-
-O Dashboard já aparece no topo deste README. Abaixo, o restante do fluxo:
-
-**Pagamentos** — listagem paginada e filtrável, com Recovery Score inline para os recusados.
-![Pagamentos](docs/screenshots/payments.png)
-
-**Detalhe do pagamento** — linha do tempo completa e breakdown do Recovery Score.
-![Detalhe do pagamento](docs/screenshots/payment-detail.png)
-
-**Recuperação** — fila de oportunidades pendentes ordenada por impacto financeiro.
-![Recuperação](docs/screenshots/recovery.png)
-
-**Clientes** — busca e histórico de pagamentos/recuperação por cliente.
-![Clientes](docs/screenshots/customers.png)
-
-**Detalhe do cliente** — histórico de pagamentos com Recovery Score e ação, quando aplicável.
-![Detalhe do cliente](docs/screenshots/customer-detail.png)
-
-**Assinaturas** — plano, periodicidade e próxima cobrança.
-![Assinaturas](docs/screenshots/subscriptions.png)
 
 ## Limitações conhecidas
 
-- **Autenticação e autorização não estão implementadas** — decisão consciente, já que este é um projeto de portfólio/demonstração. Num próximo passo, entraria como Login → JWT → Authorization → API.
+- **Sem autenticação de usuário** — existe uma API key simples (`X-Api-Key`) protegendo a API, mais para demonstrar a preocupação com segurança do que como controle de acesso real (a chave, quando configurada, vai embutida no bundle do frontend). Um próximo passo natural seria Login → JWT → Authorization → API.
 - **Gateway de pagamento simulado**: `IPaymentGatewaySimulator` já isola a interface da implementação (`PaymentGatewaySimulator`), pronta para receber uma implementação real (ex.: modo sandbox de um provedor) sem alterar o resto do sistema.
-- **Sem deploy público** neste momento.

@@ -12,6 +12,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         builder.Property(c => c.Name).HasMaxLength(200).IsRequired();
         builder.Property(c => c.Email).HasMaxLength(256).IsRequired();
+        builder.Property(c => c.Phone).HasMaxLength(20).IsRequired();
         builder.Property(c => c.Document).HasMaxLength(32).IsRequired();
 
         builder.HasIndex(c => c.Email).IsUnique();

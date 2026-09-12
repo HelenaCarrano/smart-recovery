@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.API.Common;
 using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Payments.DTOs;
 using SmartRecovery.Application.Payments.Services;
@@ -23,7 +24,7 @@ public class PaymentsController(IPaymentService paymentService) : ControllerBase
         [FromQuery] DateTime? dateTo,
         CancellationToken cancellationToken) =>
         Ok(await paymentService.GetPagedAsync(
-            page <= 0 ? 1 : page, pageSize <= 0 ? 25 : pageSize, status, declineReason, customerId, dateFrom, dateTo, cancellationToken));
+            Pagination.NormalizePage(page), Pagination.NormalizePageSize(pageSize, 25), status, declineReason, customerId, dateFrom, dateTo, cancellationToken));
 
     /// <summary>Busca uma cobrança pelo Id.</summary>
     [HttpGet("{id:guid}")]

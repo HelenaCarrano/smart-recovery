@@ -23,12 +23,16 @@ public static class RecoveryScoreCalculator
     /// <summary>Score inicial atribuído a cada motivo de recusa, antes de ajustes por histórico.</summary>
     private static int BaseScoreFor(DeclineReason reason) => reason switch
     {
+        DeclineReason.IssuerUnavailable => 90,
         DeclineReason.TemporaryError => 90,
+        DeclineReason.CardLimitExceeded => 75,
         DeclineReason.InsufficientFunds => 70,
         DeclineReason.Unknown => 50,
         DeclineReason.ExpiredCard => 40,
+        DeclineReason.SecurityCodeInvalid => 35,
         DeclineReason.InvalidCard => 35,
         DeclineReason.BlockedCard => 15,
+        DeclineReason.SuspectedFraud => 10,
         _ => 50
     };
 

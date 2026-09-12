@@ -13,6 +13,8 @@ export function explainRecommendedAction(action: RecoveryAction, declineReason: 
       return 'O cliente tem um histórico moderado. Uma nova tentativa foi agendada para daqui a 72 horas, dando tempo para o problema se resolver (ex: saldo).'
     case 'RequestPaymentMethodUpdate':
       return `Este pagamento apresenta baixa probabilidade de recuperação automática${declineReason ? ` (${declineReasonLabel(declineReason).toLowerCase()})` : ''} e requer que o cliente atualize a forma de pagamento.`
+    case 'SendPaymentReminderEmail':
+      return 'Já foram feitas várias tentativas consecutivas sem sucesso. Em vez de continuar retentando às cegas ou cancelar de imediato, um e-mail de aviso com link de regularização (atualização de cartão ou Pix) foi enviado ao cliente.'
     case 'CancelSubscription':
       return 'O score de recuperação está muito baixo e há sinais consistentes de que novas tentativas não seriam bem-sucedidas, então a assinatura foi cancelada automaticamente.'
     case 'ManualReview':

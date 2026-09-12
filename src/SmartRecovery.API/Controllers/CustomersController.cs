@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartRecovery.API.Common;
 using SmartRecovery.Application.Common;
 using SmartRecovery.Application.Customers.DTOs;
 using SmartRecovery.Application.Customers.Services;
@@ -14,7 +15,7 @@ public class CustomersController(ICustomerService customerService) : ControllerB
     [HttpGet]
     public async Task<ActionResult<PagedResult<CustomerListItemDto>>> GetPaged(
         [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search, CancellationToken cancellationToken) =>
-        Ok(await customerService.GetPagedAsync(page <= 0 ? 1 : page, pageSize <= 0 ? 20 : pageSize, search, cancellationToken));
+        Ok(await customerService.GetPagedAsync(Pagination.NormalizePage(page), Pagination.NormalizePageSize(pageSize, 20), search, cancellationToken));
 
     /// <summary>Busca um cliente pelo Id.</summary>
     [HttpGet("{id:guid}")]
