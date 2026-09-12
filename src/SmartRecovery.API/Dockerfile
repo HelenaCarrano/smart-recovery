@@ -28,8 +28,9 @@ RUN dotnet publish src/SmartRecovery.API/SmartRecovery.API.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Usuário não-root por boas práticas de segurança
-USER app
+# Desativa W^X para compatibilidade com o kernel/seccomp do Render (evita Exit Status 139 / SIGSEGV)
+ENV DOTNET_EnableWriteXorExecute=0
+ENV ASPNETCORE_URLS=http://+:8080
 
 COPY --from=build /app/publish .
 
