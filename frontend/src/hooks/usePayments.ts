@@ -23,7 +23,9 @@ async function fetchPayments(page: number, pageSize: number, filters: PaymentsFi
 
   const items = await Promise.all(
     result.items.map(async (item) => {
-      if (item.status !== 'Declined') return item
+      // O backend não inclui recoveryScore/recommendedAction no DTO de listagem — sem isso explícito
+      // aqui, o campo fica `undefined` (não `null`), e a checagem de exibição abaixo não pega esse caso.
+      if (item.status !== 'Declined') return { ...item, recoveryScore: null, recommendedAction: null }
 
       const analysis = await getRecoveryAnalysisByPayment(item.id)
       return {

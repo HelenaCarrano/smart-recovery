@@ -24,11 +24,7 @@ export async function getPaymentById(id: string): Promise<Payment> {
   return data
 }
 
-/**
- * Não existe um endpoint que liste todos os pagamentos da plataforma — só por
- * cliente. A listagem geral de Pagamentos é montada combinando esta chamada por
- * cliente com GET /api/customers (ver hooks/usePayments.ts).
- */
+/** Histórico de pagamentos de um cliente — usado na página de detalhe do cliente. */
 export async function getPaymentsByCustomer(customerId: string): Promise<Payment[]> {
   const { data } = await api.get<Payment[]>(`/api/payments/by-customer/${customerId}`)
   return data

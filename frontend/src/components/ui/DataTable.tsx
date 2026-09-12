@@ -33,7 +33,7 @@ export function DataTable<T>({ columns, data, keyExtractor, onRowClick }: DataTa
             <tr
               key={keyExtractor(row)}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={clsx('text-slate-700', onRowClick && 'cursor-pointer hover:bg-slate-50')}
+              className={clsx('text-slate-700 transition-colors', onRowClick && 'cursor-pointer hover:bg-slate-50')}
             >
               {columns.map((column) => (
                 <td key={column.key} className={clsx('py-3 pr-4', column.className)}>

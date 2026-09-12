@@ -40,3 +40,19 @@
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplicada ao conteúdo principal a cada troca de rota (ver AppLayout) — só entrada, sem repetir em re-renders. */
+.animate-page-in {
+  animation: fade-in-up 0.2s ease-out;
+}
