@@ -148,8 +148,3 @@ SmartRecovery/
 
 **Projeto de portfólio — versão funcional.**
 
-## Autor
-
-**Helena Carrano**
-
-Desenvolvedora com experiência em Python, dados, automação e prevenção a fraudes, com foco em desenvolvimento backend.
