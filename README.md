@@ -6,7 +6,7 @@ O sistema simula cobranças, identifica pagamentos recusados, calcula um **Recov
 
 ## Demo
 
-**Frontend:** https://smart-recovery-8b538.web.app
+**Frontend:** https://smart-recovery-8b538.web.app (primeira vez rodando pode demorar)
 **API / Swagger:** https://smart-recovery-api.onrender.com
 
 Todos os dados e pagamentos são simulados.
